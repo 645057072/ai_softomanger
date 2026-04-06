@@ -368,3 +368,96 @@ sudo chmod +x /etc/rc.d/rc.local
 
 通过以上步骤，您可以在阿里云Alibaba Cloud Linux 3.2104 LTS系统上成功部署考试系统，确保系统稳定运行。如果遇到任何问题，请参考常见问题排查部分进行解决。
 
+
+
+Trae-Win11
+本地安装github
+安装 Git（Windows 11）
+下载：https://git-scm.com/download/win
+安装：一路 Next（默认选项即可）
+验证：
+打开 命令提示符 / PowerShell / TRAE 终端
+输入：
+bash
+运行
+git --version
+出现版本号即成功。
+2. 配置 Git 用户名 / 邮箱（全局）
+bash
+运行
+git config --global user.name "你的GitHub用户名"
+git config --global user.email "你的GitHub注册邮箱"
+3. 连接 GitHub
+方式 A：SSH（推荐，免密、安全）
+生成密钥（一路回车，不用设密码）
+bash
+运行
+ssh-keygen -t ed25519 -C "你的GitHub邮箱"
+复制公钥
+bash
+运行
+cat C:\Users\[操作系统用户名]\.ssh\id_ed25519.pub
+登录github
+GitHub → Settings → SSH and GPG keys → New SSH key
+Title：随便写（如 TRAE-Win11）
+Key type：Authentication key
+Key：粘贴刚才复制的全部内容 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUQzxX1c9pCJIT46zWIW1dEfhB6InKpkVxEVXPHm3cj 645057072@qq.com→ Add SSH key
+测试连接
+bash
+运行
+ssh -T git@github.com
+出现 Hi xxx! You've successfully authenticated 即成功。
+
+ssh -T git@github.com
+ cd .\AI_CASE\ai_softomanger\
+ G:\AI_CASE\ai_softomanger> git init
+ G:\AI_CASE\ai_softomanger> git add .
+PS G:\AI_CASE\ai_softomanger> git status
+
+G:\AI_CASE\ai_softomanger> git commit -m "Initial commit: AI Soft Manager project
+>>
+>> - Add Dockerfile for containerization
+>> - Setup Python web application with Gunicorn
+>> - Configure requirements.txt
+>> - Add uploads directory support"
+ git remote add origin git@github.com:645057072/ai_softomanger.git
+
+PS G:\AI_CASE\ai_softomanger> git remote -v
+origin  git@github.com:645057072/ai_softomanger.git (fetch)
+origin  git@github.com:645057072/ai_softomanger.git (push)
+PS G:\AI_CASE\ai_softomanger> git push -u origin main
+error: src refspec main does not match any
+
+PS G:\AI_CASE\ai_softomanger> git remote add origin git@github.com:wuying/ai-softomanger.git
+error: remote origin already exists.
+PS G:\AI_CASE\ai_softomanger> cd G:\AI_CASE\ai_softomanger
+
+PS G:\AI_CASE\ai_softomanger> # 删除错误的远程地址（如果存在）
+PS G:\AI_CASE\ai_softomanger> git remote remove origin
+
+PS G:\AI_CASE\ai_softomanger> # 添加正确的远程地址
+PS G:\AI_CASE\ai_softomanger>error: failed to push some refs to 'github.com:645057072/ai_softomanger.git'
+PS G:\AI_CASE\ai_softomanger> # 推送到 GitHub
+PS G:\AI_CASE\ai_softomanger> git push -u origin main
+error: src refspec main does not match any
+error: failed to push some refs to 'github.com:645057072/ai_softomanger.git'
+PS G:\AI_CASE\ai_softomanger> git push -u origin master
+
+
+8ab3aba18acf716565f8d24b587c7b6584d708d3e87cf1e050af33e547f293e4
+
+https://qrman0ml.mirror.aliyuncs.com
+
+# 1. 写入正确的daemon.json配置（替换为你的专属地址）
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://qrman0ml.mirror.aliyuncs.com"]
+}
+EOF
+
+# 2. 彻底重启Docker生效
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+# 3. 验证配置生效
+docker info | grep -A 5 "Registry Mirrors"
