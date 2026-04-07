@@ -46,6 +46,8 @@ def create_app(config_name='default'):
     
     # 创建数据库表
     with app.app_context():
+        # 导入所有模型类，确保表被正确创建
+        from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig
         db.create_all()
         init_admin_user()
     
