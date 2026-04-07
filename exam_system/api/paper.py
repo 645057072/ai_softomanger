@@ -7,9 +7,9 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from extensions import db
-from models import Paper, PaperQuestion, Question, User, SystemLog
-from utils.decorators import admin_required, teacher_required
+from exam_system.extensions import db
+from exam_system.models import Paper, PaperQuestion, Question, User, SystemLog, Exam
+from exam_system.utils.decorators import admin_required, teacher_required
 
 paper_bp = Blueprint('paper', __name__)
 
@@ -336,7 +336,6 @@ def get_available_papers():
     for p in papers:
         paper_dict = p.to_dict()
         # 检查是否已达到最大考试次数
-        from models import Exam
         attempt_count = Exam.query.filter_by(
             paper_id=p.id, user_id=user_id
         ).count()

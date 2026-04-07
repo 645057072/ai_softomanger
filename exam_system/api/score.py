@@ -6,9 +6,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 
-from extensions import db
-from models import Exam, Paper, User, ExamAnswer, Question
-from utils.decorators import admin_required, teacher_required
+from exam_system.extensions import db
+from exam_system.models import Exam, Paper, User, ExamAnswer, Question
+from exam_system.utils.decorators import admin_required, teacher_required
 
 score_bp = Blueprint('score', __name__)
 

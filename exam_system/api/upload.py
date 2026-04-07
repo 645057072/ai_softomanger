@@ -116,7 +116,8 @@ def get_file(filepath):
 @jwt_required()
 def upload_avatar():
     """上传头像"""
-    from models import User, db
+    from exam_system.models import User
+    from exam_system.extensions import db
     
     allowed_images = {'png', 'jpg', 'jpeg', 'gif'}
     

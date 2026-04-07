@@ -9,9 +9,9 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 
-from extensions import db
-from models import Question, ExamType, ExamSubject, SystemLog
-from utils.decorators import admin_required, teacher_required
+from exam_system.extensions import db
+from exam_system.models import Question, ExamType, ExamSubject, SystemLog
+from exam_system.utils.decorators import admin_required, teacher_required
 
 question_bp = Blueprint('question', __name__)
 

@@ -6,10 +6,10 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from datetime import datetime
 
-from extensions import db
-from models import User, SystemLog
-from utils.decorators import validate_json
-from utils.validators import user_login_schema, user_register_schema
+from exam_system.extensions import db
+from exam_system.models import User, SystemLog
+from exam_system.utils.decorators import validate_json
+from exam_system.utils.validators import user_login_schema, user_register_schema
 
 auth_bp = Blueprint('auth', __name__)
 

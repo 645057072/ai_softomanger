@@ -4,13 +4,14 @@
 """
 import random
 import json
+import re
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from extensions import db, redis_client
-from models import Paper, PaperQuestion, Question, Exam, ExamAnswer, ExamLog, User
-from utils.decorators import student_required
+from exam_system.extensions import db, redis_client
+from exam_system.models import Paper, PaperQuestion, Question, Exam, ExamAnswer, ExamLog, User
+from exam_system.utils.decorators import student_required
 
 exam_bp = Blueprint('exam', __name__)
 
@@ -303,7 +304,6 @@ def check_answer(question, user_answer):
     return False
 
 
-import re
 
 
 @exam_bp.route('/<int:exam_id>/log', methods=['POST'])
