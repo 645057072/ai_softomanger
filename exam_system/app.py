@@ -10,6 +10,7 @@ from flask_migrate import Migrate
 
 from exam_system.config import config
 from exam_system.extensions import db, jwt, cors, socketio, init_redis
+from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig
 
 
 def create_app(config_name='default'):
@@ -46,8 +47,6 @@ def create_app(config_name='default'):
     
     # 创建数据库表
     with app.app_context():
-        # 导入所有模型类，确保表被正确创建
-        from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig
         db.create_all()
         init_admin_user()
     
@@ -144,7 +143,6 @@ def register_jwt_callbacks(app):
 
 def init_admin_user():
     """初始化管理员账户"""
-    from exam_system.models import User
     admin = User.query.filter_by(username='admin').first()
     if not admin:
         admin = User(
