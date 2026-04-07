@@ -1,5 +1,5 @@
-# 基于Python 3.9的官方镜像
-FROM python:3.9-slim
+# 基于Python 3.9的阿里云镜像
+FROM registry.cn-hangzhou.aliyuncs.com/library/python:3.9-slim
 
 # 设置工作目录
 WORKDIR /app
