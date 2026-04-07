@@ -188,7 +188,6 @@ vim nginx/nginx.conf
 ```bash
 # 构建并启动服务
 sudo docker-compose up -d --build
-
 # 查看服务状态
 sudo docker-compose ps
 ```
@@ -461,3 +460,7 @@ sudo systemctl restart docker
 
 # 3. 验证配置生效
 docker info | grep -A 5 "Registry Mirrors"
+
+
+
+拉取全部代码  git fetch --all && git reset --hard origin/master && git pull
