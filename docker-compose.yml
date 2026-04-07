@@ -3,7 +3,7 @@ services:
     build: .
     container_name: exam-system-backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./uploads:/app/uploads
     environment:

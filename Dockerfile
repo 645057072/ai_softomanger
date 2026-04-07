@@ -38,7 +38,7 @@ COPY . .
 RUN mkdir -p uploads
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5001
 
 # 启动应用
-CMD ["gunicorn", "exam_system.app:app", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "300"]
+CMD ["gunicorn", "exam_system.app:app", "-w", "4", "-b", "0.0.0.0:5001", "--timeout", "300"]
