@@ -1,5 +1,6 @@
-# 基于Python 3.9的阿里云镜像
-FROM registry.cn-hangzhou.aliyuncs.com/library/python:3.9-slim
+# 基于 Python 3.9 的阿里云镜像
+ARG PYTHON_IMAGE=registry.cn-hangzhou.aliyuncs.com/library/python:3.9-slim
+FROM ${PYTHON_IMAGE}
 
 # 设置工作目录
 WORKDIR /app
@@ -17,16 +18,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装setuptools和pip
+# 安装 setuptools 和 pip
 RUN python -m ensurepip --upgrade && \
     python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
     --trusted-host pypi.tuna.tsinghua.edu.cn
 
-# 复制requirements.txt
+# 复制 requirements.txt
 COPY requirements.txt .
 
-# 安装Python依赖
+# 安装 Python 依赖
 RUN python -m pip install --no-cache-dir -r requirements.txt \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
     --trusted-host pypi.tuna.tsinghua.edu.cn
