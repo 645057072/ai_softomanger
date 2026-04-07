@@ -7,9 +7,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 
-from extensions import db
-from models import User, Question, Paper, Exam, SystemLog, SystemConfig, ExamType, ExamSubject
-from utils.decorators import admin_required
+from exam_system.extensions import db
+from exam_system.models import User, Question, Paper, Exam, SystemLog, SystemConfig, ExamType, ExamSubject
+from exam_system.utils.decorators import admin_required
 
 system_bp = Blueprint('system', __name__)
 

@@ -125,7 +125,7 @@ def register_error_handlers(app):
 
 def register_jwt_callbacks(app):
     """注册JWT回调函数"""
-    from extensions import jwt
+    from exam_system.extensions import jwt
     
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
