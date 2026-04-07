@@ -4,11 +4,7 @@ FROM python:3.9-slim
 # 设置工作目录
 WORKDIR /app
 
-# 更换国内源
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
-
-# 安装系统依赖
+# 安装系统依赖（使用默认源）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -17,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 setuptools 和 pip
+# 安装 setuptools 和 pip（使用清华源）
 RUN python -m ensurepip --upgrade && \
     python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
@@ -26,7 +22,7 @@ RUN python -m ensurepip --upgrade && \
 # 复制 requirements.txt
 COPY requirements.txt .
 
-# 安装 Python 依赖
+# 安装 Python 依赖（使用清华源）
 RUN python -m pip install --no-cache-dir -r requirements.txt \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
     --trusted-host pypi.tuna.tsinghua.edu.cn
