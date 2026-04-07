@@ -8,7 +8,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       - SECRET_KEY=your-secret-key-here
-      - SQLALCHEMY_DATABASE_URI=sqlite:////app/exam_system.db
+      - SQLALCHEMY_DATABASE_URI=sqlite:////app/exam_system/exam_system.db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -22,6 +22,15 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+  frontend:
+    image: node:18-alpine
+    container_name: exam-system-frontend
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+    command: sh -c "npm install && npm run build"
+    restart: "no"
+
   nginx:
     image: nginx:alpine
     container_name: exam-system-nginx
@@ -29,6 +38,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend/dist:/usr/share/nginx/html
     depends_on:
       - backend
+      - frontend
     restart: unless-stopped
