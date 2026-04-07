@@ -8,8 +8,8 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 
-from config import config
-from extensions import db, jwt, cors, socketio, init_redis
+from exam_system.config import config
+from exam_system.extensions import db, jwt, cors, socketio, init_redis
 
 
 def create_app(config_name='default'):
@@ -81,14 +81,14 @@ def setup_logging(app):
 
 def register_blueprints(app):
     """注册蓝图"""
-    from api.auth import auth_bp
-    from api.user import user_bp
-    from api.question import question_bp
-    from api.paper import paper_bp
-    from api.exam import exam_bp
-    from api.score import score_bp
-    from api.upload import upload_bp
-    from api.system import system_bp
+    from exam_system.api.auth import auth_bp
+    from exam_system.api.user import user_bp
+    from exam_system.api.question import question_bp
+    from exam_system.api.paper import paper_bp
+    from exam_system.api.exam import exam_bp
+    from exam_system.api.score import score_bp
+    from exam_system.api.upload import upload_bp
+    from exam_system.api.system import system_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/user')
@@ -142,7 +142,7 @@ def register_jwt_callbacks(app):
 
 def init_admin_user():
     """初始化管理员账户"""
-    from models import User, db
+    from exam_system.models import User
     admin = User.query.filter_by(username='admin').first()
     if not admin:
         admin = User(
@@ -155,3 +155,10 @@ def init_admin_user():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
+
+
+# 创建应用实例
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001, debug=True)
