@@ -1,6 +1,5 @@
-# 基于 Python 3.9 的阿里云镜像
-ARG PYTHON_IMAGE=registry.cn-hangzhou.aliyuncs.com/library/python:3.9-slim
-FROM ${PYTHON_IMAGE}
+# 基于 Python 3.9 的官方镜像
+FROM python:3.9-slim
 
 # 设置工作目录
 WORKDIR /app

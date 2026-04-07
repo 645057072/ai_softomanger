@@ -2,8 +2,6 @@ services:
   backend:
     build:
       context: .
-      args:
-        PYTHON_IMAGE: registry.cn-hangzhou.aliyuncs.com/library/python:3.9-slim
     container_name: exam-system-backend
     ports:
       - "5001:5001"
@@ -22,7 +20,7 @@ services:
       - exam-network
 
   redis:
-    image: registry.cn-hangzhou.aliyuncs.com/library/redis:6-alpine
+    image: redis:6-alpine
     container_name: exam-system-redis
     ports:
       - "6379:6379"
@@ -31,7 +29,7 @@ services:
       - exam-network
 
   frontend:
-    image: registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+    image: node:18-alpine
     container_name: exam-system-frontend
     working_dir: /app/frontend
     volumes:
@@ -43,7 +41,7 @@ services:
       - exam-network
 
   nginx:
-    image: registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
+    image: nginx:alpine
     container_name: exam-system-nginx
     ports:
       - "80:80"
