@@ -9,7 +9,7 @@
 
       <div class="login-form">
         <div class="form-item">
-          <label>用户名</label>
+          <label>用户</label>
           <input 
             type="text" 
             v-model="username" 
@@ -29,7 +29,7 @@
         </div>
 
         <div class="form-item">
-          <label>登录日期</label>
+          <label>日期</label>
           <input 
             type="date" 
             v-model="loginDate" 
@@ -37,12 +37,8 @@
         </div>
 
         <div class="form-buttons">
-          <button class="btn-cancel" @click="handleCancel">取消</button>
+          <button class="btn-register" @click="handleRegister">注册</button>
           <button class="btn-login" @click="handleLogin">登录</button>
-        </div>
-
-        <div class="form-footer">
-          <p>还没有账号？<router-link to="/register">立即注册</router-link></p>
         </div>
       </div>
     </div>
@@ -81,9 +77,8 @@ export default {
       })
     },
 
-    handleCancel() {
-      this.username = ''
-      this.password = ''
+    handleRegister() {
+      this.$router.push('/register')
     }
   }
 }
@@ -104,12 +99,12 @@ export default {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   padding: 50px 40px;
   width: 100%;
-  max-width: 450px;
+  max-width: 420px;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
 .logo {
@@ -120,7 +115,7 @@ export default {
 .login-header h1 {
   color: #333;
   font-size: 28px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -129,7 +124,7 @@ export default {
 }
 
 .form-item {
-  margin-bottom: 25px;
+  margin-bottom: 22px;
 }
 
 .form-item label {
@@ -162,7 +157,7 @@ export default {
   margin-top: 30px;
 }
 
-.btn-cancel,
+.btn-register,
 .btn-login {
   flex: 1;
   padding: 14px;
@@ -174,12 +169,12 @@ export default {
   font-weight: 500;
 }
 
-.btn-cancel {
+.btn-register {
   background: #f5f5f5;
   color: #666;
 }
 
-.btn-cancel:hover {
+.btn-register:hover {
   background: #e0e0e0;
 }
 
@@ -191,22 +186,5 @@ export default {
 .btn-login:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.form-footer {
-  margin-top: 25px;
-  text-align: center;
-  font-size: 14px;
-  color: #666;
-}
-
-.form-footer a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.form-footer a:hover {
-  text-decoration: underline;
 }
 </style>

@@ -26,7 +26,7 @@
             padding: 60px 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 500px;
+            max-width: 450px;
             width: 90%;
         }
         
@@ -38,23 +38,13 @@
         h1 {
             color: #333;
             font-size: 32px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .subtitle {
             color: #666;
             font-size: 16px;
             margin-bottom: 40px;
-        }
-        
-        .status {
-            display: inline-block;
-            padding: 8px 20px;
-            background: #d4edda;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            font-size: 13px;
-            color: #155724;
         }
         
         .btn-group {
@@ -92,33 +82,6 @@
             color: white;
         }
         
-        .divider {
-            margin: 30px 0;
-            border-top: 1px solid #e0e0e0;
-            position: relative;
-        }
-        
-        .divider::before {
-            content: '或';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 0 10px;
-            color: #999;
-            font-size: 14px;
-        }
-        
-        .tips {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #666;
-        }
-        
         .footer {
             margin-top: 40px;
             color: #999;
@@ -148,20 +111,11 @@
         <h1>考试系统</h1>
         <p class="subtitle">Online Examination System</p>
         
-        <div class="status">✓ 系统正常运行</div>
-        
         <div class="loading"></div>
         
         <div class="btn-group">
-            <a href="/login" class="btn">管理员登录</a>
-            <a href="/register" class="btn btn-outline">用户注册</a>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="tips">
-            <p>已有账号？直接登录</p>
-            <p style="margin-top: 8px;">首次使用？请先注册账号</p>
+            <a href="/login" class="btn">登录</a>
+            <a href="/register" class="btn btn-outline">注册</a>
         </div>
         
         <div class="footer">
@@ -176,8 +130,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.code === 200) {
-                        document.querySelector('.status').innerHTML = '✓ 系统正常运行';
-                        document.querySelector('.status').style.background = '#d4edda';
                         document.querySelector('.loading').style.display = 'none';
                     }
                 })
