@@ -69,13 +69,86 @@
             <span class="nav-text">考试中心</span>
           </div>
 
-          <div 
-            class="nav-item" 
-            :class="{ active: currentMenu === 'system' }"
-            @click="navigateTo('system')"
-          >
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-text">系统设置</span>
+          <!-- 系统设置菜单（带子菜单） -->
+          <div class="nav-item-wrapper">
+            <div 
+              class="nav-item system-menu-title"
+              :class="{ active: currentMenu === 'system' }"
+              @click="toggleSystemMenu"
+            >
+              <span class="nav-icon">⚙️</span>
+              <span class="nav-text">系统设置</span>
+              <span class="nav-arrow" :class="{ 'arrow-down': systemMenuExpanded }">▶</span>
+            </div>
+            
+            <!-- 系统设置二级菜单 -->
+            <div v-show="systemMenuExpanded" class="system-submenu">
+              <div 
+                class="submenu-item"
+                :class="{ active: currentSubmenu === 'organization' }"
+                @click="navigateToSubmenu('organization', '/admin/organization')"
+              >
+                <span class="submenu-icon">🏢</span>
+                <span class="submenu-text">组织机构管理</span>
+              </div>
+              
+              <div 
+                class="submenu-item"
+                :class="{ active: currentSubmenu === 'user' }"
+                @click="toggleUserSubmenu"
+              >
+                <span class="submenu-icon">👥</span>
+                <span class="submenu-text">用户管理</span>
+                <span class="submenu-arrow" :class="{ 'arrow-down': userSubmenuExpanded }">▶</span>
+              </div>
+              
+              <!-- 用户管理三级菜单 -->
+              <div v-show="userSubmenuExpanded" class="third-level-menu">
+                <div 
+                  class="third-level-item"
+                  :class="{ active: currentSubmenu === 'user-approval' }"
+                  @click="navigateToSubmenu('user-approval', '/admin/user-approval')"
+                >
+                  <span class="third-icon">•</span>
+                  <span>用户注册审批</span>
+                </div>
+                <div 
+                  class="third-level-item"
+                  :class="{ active: currentSubmenu === 'user-management' }"
+                  @click="navigateToSubmenu('user-management', '/admin/user-management')"
+                >
+                  <span class="third-icon">•</span>
+                  <span>用户管理</span>
+                </div>
+              </div>
+              
+              <div 
+                class="submenu-item"
+                :class="{ active: currentSubmenu === 'role' }"
+                @click="navigateToSubmenu('role', '/admin/role')"
+              >
+                <span class="submenu-icon">🎭</span>
+                <span class="submenu-text">角色管理</span>
+              </div>
+              
+              <div 
+                class="submenu-item"
+                :class="{ active: currentSubmenu === 'authorization' }"
+                @click="navigateToSubmenu('authorization', '/admin/authorization')"
+              >
+                <span class="submenu-icon">🔐</span>
+                <span class="submenu-text">功能授权</span>
+              </div>
+              
+              <div 
+                class="submenu-item"
+                :class="{ active: currentSubmenu === 'data' }"
+                @click="navigateToSubmenu('data', '/admin/data')"
+              >
+                <span class="submenu-icon">📊</span>
+                <span class="submenu-text">数据管理</span>
+              </div>
+            </div>
           </div>
         </nav>
       </aside>
@@ -105,7 +178,10 @@ export default {
     return {
       currentMenu: 'bi',
       currentDate: '',
-      unreadCount: 0
+      unreadCount: 0,
+      systemMenuExpanded: false,
+      userSubmenuExpanded: false,
+      currentSubmenu: ''
     }
   },
   computed: {
@@ -146,7 +222,36 @@ export default {
       else if (path.includes('/study')) this.currentMenu = 'study'
       else if (path.includes('/paper')) this.currentMenu = 'paper'
       else if (path.includes('/exam')) this.currentMenu = 'exam'
-      else if (path.includes('/system')) this.currentMenu = 'system'
+      else if (path.includes('/system') || path.includes('/admin/')) {
+        this.currentMenu = 'system'
+        // 根据路由展开对应的子菜单
+        if (path.includes('/admin/')) {
+          this.systemMenuExpanded = true
+          this.setSubmenuFromRoute(path)
+        }
+      }
+    },
+
+    setSubmenuFromRoute(path) {
+      if (path.includes('/organization')) {
+        this.currentSubmenu = 'organization'
+        this.userSubmenuExpanded = false
+      } else if (path.includes('/user-approval')) {
+        this.currentSubmenu = 'user-approval'
+        this.userSubmenuExpanded = true
+      } else if (path.includes('/user-management')) {
+        this.currentSubmenu = 'user-management'
+        this.userSubmenuExpanded = true
+      } else if (path.includes('/role')) {
+        this.currentSubmenu = 'role'
+        this.userSubmenuExpanded = false
+      } else if (path.includes('/authorization')) {
+        this.currentSubmenu = 'authorization'
+        this.userSubmenuExpanded = false
+      } else if (path.includes('/data')) {
+        this.currentSubmenu = 'data'
+        this.userSubmenuExpanded = false
+      }
     },
 
     navigateTo(menu) {
@@ -159,6 +264,22 @@ export default {
         'system': '/system'
       }
       this.$router.push(routes[menu])
+    },
+
+    toggleSystemMenu() {
+      this.systemMenuExpanded = !this.systemMenuExpanded
+      if (this.systemMenuExpanded) {
+        this.currentMenu = 'system'
+      }
+    },
+
+    toggleUserSubmenu() {
+      this.userSubmenuExpanded = !this.userSubmenuExpanded
+    },
+
+    navigateToSubmenu(submenu, path) {
+      this.currentSubmenu = submenu
+      this.$router.push(path)
     },
 
     handleLogout() {
@@ -344,6 +465,109 @@ export default {
 .nav-text {
   font-size: 14px;
   font-weight: 500;
+}
+
+.nav-arrow {
+  margin-left: auto;
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+.nav-arrow.arrow-down {
+  transform: rotate(90deg);
+}
+
+.nav-item-wrapper {
+  margin-bottom: 5px;
+}
+
+.system-menu-title {
+  position: relative;
+}
+
+/* 系统设置二级菜单 */
+.system-submenu {
+  background: #fafafa;
+  padding: 5px 0;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px 10px 45px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.submenu-item:hover {
+  background: #ecf5ff;
+  border-left-color: #409eff;
+  color: #409eff;
+}
+
+.submenu-item.active {
+  background: #ecf5ff;
+  border-left-color: #409eff;
+  color: #409eff;
+  font-weight: 500;
+}
+
+.submenu-icon {
+  font-size: 18px;
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.submenu-text {
+  flex: 1;
+  font-size: 13px;
+}
+
+.submenu-arrow {
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+.submenu-arrow.arrow-down {
+  transform: rotate(90deg);
+}
+
+/* 用户管理三级菜单 */
+.third-level-menu {
+  background: #f5f7fa;
+  padding: 5px 0;
+}
+
+.third-level-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px 8px 55px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  font-size: 13px;
+}
+
+.third-level-item:hover {
+  background: #e6f7ff;
+  border-left-color: #409eff;
+  color: #409eff;
+}
+
+.third-level-item.active {
+  background: #e6f7ff;
+  border-left-color: #409eff;
+  color: #409eff;
+  font-weight: 500;
+}
+
+.third-icon {
+  margin-right: 8px;
+  color: #409eff;
+  font-size: 16px;
 }
 
 /* 右侧内容区 */
