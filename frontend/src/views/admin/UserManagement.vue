@@ -8,6 +8,7 @@
         </div>
       </template>
       <el-table :data="tableData" border style="width: 100%">
+        <el-table-column type="index" label="序号" width="60" :index="indexMethod" />
         <el-table-column prop="username" label="用户名" />
         <el-table-column prop="real_name" label="真实姓名" />
         <el-table-column prop="email" label="邮箱" />
@@ -212,6 +213,10 @@ export default {
       fetchData()
     }
 
+    const indexMethod = (index) => {
+      return (pagination.page - 1) * pagination.per_page + index + 1
+    }
+
     onMounted(() => {
       fetchData()
     })
@@ -227,7 +232,8 @@ export default {
       handleEdit,
       handleSubmit,
       handleDelete,
-      handlePageChange
+      handlePageChange,
+      indexMethod
     }
   }
 }

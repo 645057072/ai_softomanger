@@ -1,6 +1,6 @@
 <template>
   <div class="system-layout">
-    <!-- 左侧系统模块导航 -->
+    <!-- 中部左侧系统模块导航 -->
     <div class="system-sidebar">
       <div class="sidebar-header">
         <h3>⚙️ 系统设置</h3>
@@ -127,6 +127,7 @@ export default {
   display: flex;
   height: 100%;
   background: #f5f7fa;
+  position: relative;
 }
 
 .system-sidebar {
@@ -135,6 +136,12 @@ export default {
   border-right: 1px solid #e4e7ed;
   display: flex;
   flex-direction: column;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-header {
@@ -238,5 +245,6 @@ export default {
   flex: 1;
   overflow: auto;
   padding: 20px;
+  margin-left: 280px;
 }
 </style>
