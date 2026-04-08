@@ -4,14 +4,53 @@
 """
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from exam_system.extensions import db
+from exam_system.extensions import db, redis_client
 from exam_system.models import User, SystemLog
 from exam_system.utils.decorators import validate_json
 from exam_system.utils.validators import user_login_schema, user_register_schema
 
 auth_bp = Blueprint('auth', __name__)
+
+
+def check_login_attempts(username, ip_address):
+    """检查登录失败次数和冷却时间"""
+    # 生成Redis键
+    attempts_key = f'login:attempts:{username}:{ip_address}'
+    lockout_key = f'login:lockout:{username}:{ip_address}'
+    
+    # 检查是否处于冷却期
+    if redis_client.exists(lockout_key):
+        remaining_time = redis_client.ttl(lockout_key)
+        return False, f'登录失败次数过多，请在{remaining_time}秒后重试'
+    
+    # 检查失败次数
+    attempts = redis_client.get(attempts_key)
+    if attempts and int(attempts) >= 5:
+        # 设置5分钟冷却期
+        redis_client.setex(lockout_key, 300, '1')
+        redis_client.delete(attempts_key)
+        return False, '登录失败次数过多，请在5分钟后重试'
+    
+    return True, None
+
+def increment_login_attempts(username, ip_address):
+    """增加登录失败次数"""
+    attempts_key = f'login:attempts:{username}:{ip_address}'
+    attempts = redis_client.get(attempts_key)
+    if attempts:
+        redis_client.incr(attempts_key)
+    else:
+        # 设置10分钟过期
+        redis_client.setex(attempts_key, 600, 1)
+
+def reset_login_attempts(username, ip_address):
+    """重置登录失败次数"""
+    attempts_key = f'login:attempts:{username}:{ip_address}'
+    lockout_key = f'login:lockout:{username}:{ip_address}'
+    redis_client.delete(attempts_key)
+    redis_client.delete(lockout_key)
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -21,14 +60,25 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    ip_address = request.remote_addr
+    
+    # 检查登录失败次数和冷却时间
+    can_login, message = check_login_attempts(username, ip_address)
+    if not can_login:
+        return jsonify({'code': 429, 'message': message, 'data': None}), 429
     
     user = User.query.filter_by(username=username).first()
     
     if not user or not user.check_password(password):
+        # 增加登录失败次数
+        increment_login_attempts(username, ip_address)
         return jsonify({'code': 401, 'message': '用户名或密码错误', 'data': None}), 401
     
     if user.status != 1:
         return jsonify({'code': 403, 'message': '账户已被禁用', 'data': None}), 403
+    
+    # 重置登录失败次数
+    reset_login_attempts(username, ip_address)
     
     # 更新最后登录时间
     user.last_login = datetime.utcnow()
@@ -39,7 +89,7 @@ def login():
         user_id=user.id,
         module='认证',
         action='用户登录',
-        ip_address=request.remote_addr,
+        ip_address=ip_address,
         status=1
     )
     db.session.add(log)
