@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #f0f0f0;
+            border-radius: 25px;
+            margin: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .info-box p {
+            color: #555;
+            line-height: 1.8;
+            margin: 8px 0;
+        }
+        
+        .info-box strong {
+            color: #333;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .links {
+            margin-top: 30px;
+        }
+        
+        .links a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .links a:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📚</div>
+        <h1>考试系统</h1>
+        <p class="subtitle">Online Examination System</p>
+        
+        <div class="loading"></div>
+        
+        <div style="margin: 30px 0;">
+            <div class="status success">✓ Nginx 服务正常</div>
+            <div class="status success">✓ 后端服务连接中</div>
+            <div class="status warning"> 前端构建中</div>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 系统信息</h3>
+            <p><strong>系统状态：</strong>正在初始化</p>
+            <p><strong>服务器地址：</strong>http://47.93.44.247</p>
+            <p><strong>API 接口：</strong>http://47.93.44.247/api</p>
+            <p><strong>健康检查：</strong>http://47.93.44.247/api/system/health</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>🔐 默认管理员账户</h3>
+            <p><strong>用户名：</strong>admin</p>
+            <p><strong>密码：</strong>admin123</p>
+        </div>
+        
+        <div class="links">
+            <a href="/api/system/health" target="_blank">健康检查</a>
+            <a href="/api/system/config" target="_blank">系统配置</a>
+        </div>
+        
+        <div class="footer">
+            <p>考试系统 © 2026 | Powered by Flask + Vue.js</p>
+            <p style="margin-top: 10px;">如果页面持续显示，请检查前端构建日志</p>
+        </div>
+    </div>
+    
+    <script>
+        // 自动跳转到前端页面（如果存在）
+        setTimeout(function() {
+            fetch('/index.html')
+                .then(response => {
+                    if (response.ok && response.status !== 404) {
+                        // 如果前端文件存在，不跳转，等待 Vue 应用加载
+                        console.log('Frontend is loading...');
+                    }
+                })
+                .catch(err => {
+                    console.log('Waiting for frontend build...');
+                });
+        }, 2000);
+        
+        // 每 5 秒检查一次后端状态
+        setInterval(function() {
+            fetch('/api/system/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.code === 200) {
+                        document.querySelectorAll('.status')[1].className = 'status success';
+                        document.querySelectorAll('.status')[1].innerHTML = '✓ 后端服务正常';
+                    }
+                })
+                .catch(err => {
+                    console.log('Backend still initializing...');
+                });
+        }, 5000);
+    </script>
+</body>
+</html>

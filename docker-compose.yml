@@ -5,14 +5,16 @@
 # - 2026-04-08 14:30:00: 使用官方 Docker Hub 镜像（需配置 Docker 镜像加速器）
 # - 2026-04-08 14:30:00: 前端使用 npm 淘宝镜像加速构建
 # - 2026-04-08 14:30:00: 兼容 Alibaba Cloud Linux 3.2104 LTS Docker 部署
+# - 2026-04-08 15:00:00: 修改网络模式为 host，解决容器间通信问题
 
 services:
   backend:
     build:
       context: .
     container_name: exam-system-backend
-    ports:
-      - "5001:5001"
+    # 2026-04-08 15:00:00: 移除端口映射，使用容器网络内部通信
+    expose:
+      - "5001"
     volumes:
       - ./uploads:/app/uploads
       # 2026-04-08 14:30:00: 挂载 exam_system 目录，确保数据库文件持久化
@@ -33,8 +35,9 @@ services:
     # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: redis:6-alpine
     container_name: exam-system-redis
-    ports:
-      - "6379:6379"
+    # 2026-04-08 15:00:00: 移除端口映射，仅内部访问
+    expose:
+      - "6379"
     restart: unless-stopped
     networks:
       - exam-network
@@ -57,6 +60,7 @@ services:
     # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: nginx:alpine
     container_name: exam-system-nginx
+    # 2026-04-08 15:00:00: 只映射 80 端口到宿主机
     ports:
       - "80:80"
     volumes:
