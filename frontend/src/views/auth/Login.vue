@@ -1,3 +1,11 @@
+<!--
+  文件名：Login.vue
+  描述：用户登录页面组件
+  作者：Li zekun
+  创建日期：2026-04-08
+  最后修改：2026-04-08
+-->
+
 <template>
   <div class="login-container">
     <div class="login-box">
@@ -9,30 +17,33 @@
 
       <div class="login-form">
         <div class="form-item">
-          <label>用户</label>
+          <label class="form-label">用户：</label>
           <input 
             type="text" 
             v-model="username" 
             placeholder="请输入用户名"
             autocomplete="off"
+            class="form-input"
           />
         </div>
 
         <div class="form-item">
-          <label>密码</label>
+          <label class="form-label">密码：</label>
           <input 
             type="password" 
             v-model="password" 
             placeholder="请输入密码"
             @keyup.enter="handleLogin"
+            class="form-input"
           />
         </div>
 
         <div class="form-item">
-          <label>日期</label>
+          <label class="form-label">日期：</label>
           <input 
             type="date" 
             v-model="loginDate" 
+            class="form-input"
           />
         </div>
 
@@ -124,28 +135,31 @@ export default {
 }
 
 .form-item {
+  display: flex;
+  align-items: center;
   margin-bottom: 22px;
 }
 
-.form-item label {
-  display: block;
+.form-label {
+  width: 60px;
   color: #555;
   font-size: 14px;
-  margin-bottom: 8px;
   font-weight: 500;
+  text-align: right;
+  padding-right: 10px;
+  flex-shrink: 0;
 }
 
-.form-item input {
-  width: 100%;
+.form-input {
+  flex: 1;
   padding: 12px 15px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
-  transition: all 0.3s;
   box-sizing: border-box;
 }
 
-.form-item input:focus {
+.form-input:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);

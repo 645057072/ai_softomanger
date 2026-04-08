@@ -1,3 +1,11 @@
+<!--
+  文件名：App.vue
+  描述：应用主组件，处理布局切换
+  作者：Li zekun
+  创建日期：2026-04-08
+  最后修改：2026-04-08
+-->
+
 <template>
   <div id="app">
     <template v-if="isAuthLayout">
@@ -42,14 +50,11 @@ export default {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f7fa;
-  color: #333;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
 }
 
 #app {
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
 }
 </style>

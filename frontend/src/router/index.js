@@ -1,3 +1,11 @@
+/**
+ * 文件名：router/index.js
+ * 描述：应用路由配置文件
+ * 作者：Li zekun
+ * 创建日期：2026-04-08
+ * 最后修改：2026-04-08
+ */
+
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
@@ -65,54 +73,6 @@ const routes = [
     path: '/system',
     name: 'System',
     component: () => import('../views/System.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/questions',
-    name: 'Questions',
-    component: () => import('../views/Questions.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/papers',
-    name: 'Papers',
-    component: () => import('../views/Papers.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/exams',
-    name: 'Exams',
-    component: () => import('../views/Exams.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/scores',
-    name: 'Scores',
-    component: () => import('../views/Scores.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/exam/:id',
-    name: 'TakeExam',
-    component: () => import('../views/TakeExam.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/review/:id',
-    name: 'ReviewExam',
-    component: () => import('../views/ReviewExam.vue'),
     meta: {
       requiresAuth: true
     }
