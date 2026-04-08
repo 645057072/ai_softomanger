@@ -131,7 +131,7 @@ export default {
           `/api/user-management/all?page=${pagination.page}&per_page=${pagination.per_page}`,
           {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }
         )
@@ -164,7 +164,7 @@ export default {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
               },
               body: JSON.stringify(formData)
             })
@@ -193,7 +193,7 @@ export default {
           const response = await fetch(`/api/user-management/${row.id}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
           const result = await response.json()

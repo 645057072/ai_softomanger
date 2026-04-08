@@ -217,7 +217,7 @@ export default {
         
         const response = await fetch(url, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         })
         const result = await response.json()
@@ -263,7 +263,7 @@ export default {
           const response = await fetch(`/api/user-management/${row.id}/approve`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
           const result = await response.json()
@@ -289,7 +289,7 @@ export default {
           const response = await fetch(`/api/user-management/${row.id}/reject`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
           const result = await response.json()
@@ -315,7 +315,7 @@ export default {
           const response = await fetch(`/api/user-management/${row.id}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
           const result = await response.json()

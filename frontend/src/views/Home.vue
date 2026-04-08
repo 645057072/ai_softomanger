@@ -76,7 +76,7 @@ export default {
       try {
         const response = await fetch('/api/organization?page=1&per_page=1', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         })
         const result = await response.json()
