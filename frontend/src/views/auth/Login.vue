@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { useUserStore } from '../../store'
 
 export default {
   name: 'Login',
@@ -69,23 +69,22 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['login']),
-    
     handleLogin() {
       if (!this.username || !this.password) {
         this.$message.error('请输入用户名和密码')
         return
       }
 
-      this.login({
+      const userStore = useUserStore()
+      
+      // 模拟登录成功
+      userStore.login('mock-token', {
         username: this.username,
-        password: this.password
-      }).then(() => {
-        this.$message.success('登录成功')
-        this.$router.push('/home')
-      }).catch(error => {
-        this.$message.error(error.response?.data?.message || '登录失败')
+        role: 'user'
       })
+      
+      this.$message.success('登录成功')
+      this.$router.push('/home')
     },
 
     handleRegister() {

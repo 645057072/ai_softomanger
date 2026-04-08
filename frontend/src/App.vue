@@ -17,13 +17,14 @@
       </Layout>
     </template>
     <template v-else>
-      <router-view name="auth" />
+      <router-view />
     </template>
   </div>
 </template>
 
 <script>
 import Layout from './components/Layout.vue'
+import { useUserStore } from './store'
 
 export default {
   name: 'App',
@@ -32,7 +33,8 @@ export default {
   },
   computed: {
     isLoggedIn() {
-      return !!this.$store.state.user.token
+      const userStore = useUserStore()
+      return userStore.isLoggedIn
     },
     isAuthLayout() {
       const currentRoute = this.$route

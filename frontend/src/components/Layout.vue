@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { useUserStore } from '../store'
 
 export default {
   name: 'Layout',
@@ -100,9 +100,9 @@ export default {
     }
   },
   computed: {
-    ...mapState(['user']),
     currentUser() {
-      return this.user?.username || '用户'
+      const userStore = useUserStore()
+      return userStore.userInfo?.username || '用户'
     }
   },
   mounted() {
@@ -118,8 +118,6 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['logout']),
-    
     updateDate() {
       const now = new Date()
       this.currentDate = now.toLocaleString('zh-CN', {
@@ -158,7 +156,8 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.logout()
+        const userStore = useUserStore()
+        userStore.logout()
         this.$message.success('已退出系统')
         this.$router.push('/login')
       }).catch(() => {})
