@@ -575,7 +575,7 @@ export default {
   flex: 1;
   background: #f5f7fa;
   overflow-y: auto;
-  padding: 20px;
+  padding: 3px;
 }
 
 /* 下部布局：1/50 高度 */
