@@ -1,0 +1,91 @@
+# 文件名：.gitignore
+# 描述：Git 忽略文件配置
+# 作者：Li zekun
+# 创建日期：2026-04-08
+# 最后修改：2026-04-08
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.nuxt/
+dist/
+.cache/
+.vuepress/dist/
+
+# 环境变量文件（包含敏感信息）
+.env
+.env.local
+.env.*.local
+*.env
+
+# 日志文件
+*.log
+logs/
+*.log.*
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Docker
+.dockerignore
+
+# 备份文件
+*.bak
+*.backup
+*~
+
+# 敏感信息文件
+*password*
+*secret*
+*config*.*
+credentials.json
