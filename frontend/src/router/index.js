@@ -72,34 +72,46 @@ const routes = [
   {
     path: '/system',
     name: 'System',
-    component: () => import('../views/System.vue'),
+    component: () => import('../views/SystemLayout.vue'),
     meta: {
       requiresAuth: true
-    }
-  },
-  {
-    path: '/admin/organization',
-    name: 'Organization',
-    component: () => import('../views/admin/Organization.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/admin/user-approval',
-    name: 'UserApproval',
-    component: () => import('../views/admin/UserApproval.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/admin/user-management',
-    name: 'UserManagement',
-    component: () => import('../views/admin/UserManagement.vue'),
-    meta: {
-      requiresAuth: true
-    }
+    },
+    children: [
+      {
+        path: '',
+        redirect: '/admin/organization'
+      },
+      {
+        path: '/admin/organization',
+        name: 'Organization',
+        component: () => import('../views/admin/Organization.vue')
+      },
+      {
+        path: '/admin/user-approval',
+        name: 'UserApproval',
+        component: () => import('../views/admin/UserApproval.vue')
+      },
+      {
+        path: '/admin/user-management',
+        name: 'UserManagement',
+        component: () => import('../views/admin/UserManagement.vue')
+      },
+      {
+        path: '/admin/role',
+        name: 'Role',
+        component: () => import('../views/admin/Role.vue')
+      },
+      {
+        path: '/admin/authorization',
+        name: 'Authorization',
+        component: () => import('../views/admin/Authorization.vue')
+      },
+      {
+        path: '/admin/data',
+        name: 'Data',
+        component: () => import('../views/admin/Data.vue')
+      }
+    ]
   }
 ]
 
