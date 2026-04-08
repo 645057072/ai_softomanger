@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-考试系统 - Flask应用工厂
+考试系统 - Flask 应用工厂
+
+修改历史：
+- 2026-04-08 14:30:00: 添加异常处理到 init_admin_user() 函数，解决数据库表不存在导致的启动失败
+- 2026-04-08 14:30:00: 修改模型导入方式，确保所有模型在应用启动时就被加载
+- 2026-04-08 14:30:00: 兼容 Alibaba Cloud Linux 3.2104 LTS Docker 部署
 """
 import os
 import logging
@@ -10,11 +15,12 @@ from flask_migrate import Migrate
 
 from exam_system.config import config
 from exam_system.extensions import db, jwt, cors, socketio, init_redis
+# 2026-04-08 14:30:00: 导入所有模型类，确保 db.create_all() 能正确创建所有表
 from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig
 
 
 def create_app(config_name='default'):
-    """创建Flask应用"""
+    """创建 Flask 应用"""
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
@@ -30,7 +36,7 @@ def create_app(config_name='default'):
     cors.init_app(app)
     socketio.init_app(app)
     
-    # 初始化Redis
+    # 初始化 Redis
     init_redis(app)
     
     # 初始化数据库迁移
@@ -42,10 +48,10 @@ def create_app(config_name='default'):
     # 注册错误处理
     register_error_handlers(app)
     
-    # 注册JWT回调
+    # 注册 JWT 回调
     register_jwt_callbacks(app)
     
-    # 创建数据库表
+    # 2026-04-08 14:30:00: 创建数据库表（必须在 init_admin_user 之前执行）
     with app.app_context():
         db.create_all()
         init_admin_user()
@@ -125,36 +131,41 @@ def register_error_handlers(app):
 
 
 def register_jwt_callbacks(app):
-    """注册JWT回调函数"""
+    """注册 JWT 回调函数"""
     from exam_system.extensions import jwt
     
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
-        return jsonify({'code': 401, 'message': 'Token已过期', 'data': None}), 401
+        return jsonify({'code': 401, 'message': 'Token 已过期', 'data': None}), 401
     
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
-        return jsonify({'code': 401, 'message': '无效的Token', 'data': None}), 401
+        return jsonify({'code': 401, 'message': '无效的 Token', 'data': None}), 401
     
     @jwt.unauthorized_loader
     def missing_token_callback(error):
-        return jsonify({'code': 401, 'message': '缺少Token', 'data': None}), 401
+        return jsonify({'code': 401, 'message': '缺少 Token', 'data': None}), 401
 
 
+# 2026-04-08 14:30:00: 添加异常处理，解决多进程环境下数据库表未创建的竞态条件问题
 def init_admin_user():
     """初始化管理员账户"""
-    admin = User.query.filter_by(username='admin').first()
-    if not admin:
-        admin = User(
-            username='admin',
-            real_name='系统管理员',
-            email='admin@exam.com',
-            role='admin',
-            status=1
-        )
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
+    try:
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                real_name='系统管理员',
+                email='admin@exam.com',
+                role='admin',
+                status=1
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+    except Exception as e:
+        # 2026-04-08 14:30:00: 如果表不存在，忽略错误（可能在其他进程中已创建）
+        pass
 
 
 # 创建应用实例

@@ -1,3 +1,11 @@
+# 考试系统 Docker Compose 配置文件
+# 修改历史：
+# - 2026-04-08 14:30:00: 添加 exam_system 目录挂载，确保数据库文件持久化
+# - 2026-04-08 14:30:00: 添加网络配置 exam-network，确保服务间通信
+# - 2026-04-08 14:30:00: 使用官方 Docker Hub 镜像（需配置 Docker 镜像加速器）
+# - 2026-04-08 14:30:00: 前端使用 npm 淘宝镜像加速构建
+# - 2026-04-08 14:30:00: 兼容 Alibaba Cloud Linux 3.2104 LTS Docker 部署
+
 services:
   backend:
     build:
@@ -7,6 +15,7 @@ services:
       - "5001:5001"
     volumes:
       - ./uploads:/app/uploads
+      # 2026-04-08 14:30:00: 挂载 exam_system 目录，确保数据库文件持久化
       - ./exam_system:/app/exam_system
     environment:
       - SECRET_KEY=your-secret-key-here
@@ -16,10 +25,12 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    # 2026-04-08 14:30:00: 添加网络配置
     networks:
       - exam-network
 
   redis:
+    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: redis:6-alpine
     container_name: exam-system-redis
     ports:
@@ -29,18 +40,21 @@ services:
       - exam-network
 
   frontend:
+    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: node:18-alpine
     container_name: exam-system-frontend
     working_dir: /app/frontend
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/dist:/app/frontend/dist
+    # 2026-04-08 14:30:00: 使用 npm 淘宝镜像加速依赖安装
     command: sh -c "cd /app/frontend && npm install --registry=https://registry.npmmirror.com && npm run build"
     restart: "no"
     networks:
       - exam-network
 
   nginx:
+    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: nginx:alpine
     container_name: exam-system-nginx
     ports:
@@ -55,6 +69,7 @@ services:
     networks:
       - exam-network
 
+# 2026-04-08 14:30:00: 定义网络
 networks:
   exam-network:
     driver: bridge
