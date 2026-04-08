@@ -1,13 +1,36 @@
 <template>
   <div id="app">
-    <router-view v-if="$store.state.user.token" />
-    <router-view v-else name="auth" />
+    <template v-if="isAuthLayout">
+      <router-view />
+    </template>
+    <template v-else-if="isLoggedIn">
+      <Layout>
+        <router-view />
+      </Layout>
+    </template>
+    <template v-else>
+      <router-view name="auth" />
+    </template>
   </div>
 </template>
 
 <script>
+import Layout from './components/Layout.vue'
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    Layout
+  },
+  computed: {
+    isLoggedIn() {
+      return !!this.$store.state.user.token
+    },
+    isAuthLayout() {
+      const currentRoute = this.$route
+      return currentRoute.meta.layout === 'auth'
+    }
+  }
 }
 </script>
 

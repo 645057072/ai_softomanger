@@ -1,140 +1,116 @@
 <template>
-  <Layout>
-    <div class="home">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card shadow="hover" class="stat-card">
-            <el-statistic title="用户总数" :value="dashboardData?.users?.total || 0">
-              <template #suffix>
-                <el-icon><user /></el-icon>
-              </template>
-            </el-statistic>
-            <div class="stat-desc">
-              学生: {{ dashboardData?.users?.students || 0 }}
-              教师: {{ dashboardData?.users?.teachers || 0 }}
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="stat-card">
-            <el-statistic title="题库总量" :value="dashboardData?.questions || 0">
-              <template #suffix>
-                <el-icon><document /></el-icon>
-              </template>
-            </el-statistic>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="stat-card">
-            <el-statistic title="试卷数量" :value="dashboardData?.papers?.total || 0">
-              <template #suffix>
-                <el-icon><folder /></el-icon>
-              </template>
-            </el-statistic>
-            <div class="stat-desc">
-              已发布: {{ dashboardData?.papers?.active || 0 }}
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="stat-card">
-            <el-statistic title="考试次数" :value="dashboardData?.exams?.total || 0">
-              <template #suffix>
-                <el-icon><timer /></el-icon>
-              </template>
-            </el-statistic>
-            <div class="stat-desc">
-              今日: {{ dashboardData?.exams?.today || 0 }}
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
+  <div class="home-container">
+    <div class="welcome-card">
+      <h1>欢迎使用考试系统</h1>
+      <p class="subtitle">请选择左侧菜单进行操作</p>
       
-      <el-card shadow="hover" style="margin-top: 20px;">
-        <template #header>
-          <div class="card-header">
-            <span>最近7天考试趋势</span>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <div class="stat-value">0</div>
+            <div class="stat-label">总题数</div>
           </div>
-        </template>
-        <div id="trendChart" style="width: 100%; height: 300px;"></div>
-      </el-card>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">📝</div>
+          <div class="stat-info">
+            <div class="stat-value">0</div>
+            <div class="stat-label">试卷数</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">✏️</div>
+          <div class="stat-info">
+            <div class="stat-value">0</div>
+            <div class="stat-label">考试数</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">👨‍🎓</div>
+          <div class="stat-info">
+            <div class="stat-value">0</div>
+            <div class="stat-label">用户数</div>
+          </div>
+        </div>
+      </div>
     </div>
-  </Layout>
+  </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
-import { systemApi } from '../api'
-import * as echarts from 'echarts'
-
 export default {
-  name: 'Home',
-  setup() {
-    const dashboardData = ref({})
-    const trendChart = ref(null)
-    
-    const loadDashboard = async () => {
-      const response = await systemApi.getDashboard()
-      if (response.code === 200) {
-        dashboardData.value = response.data
-        initChart()
-      }
-    }
-    
-    const initChart = () => {
-      if (dashboardData.value.trend) {
-        const chart = echarts.init(document.getElementById('trendChart'))
-        const option = {
-          xAxis: {
-            type: 'category',
-            data: dashboardData.value.trend.map(item => item.date)
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [{
-            data: dashboardData.value.trend.map(item => item.count),
-            type: 'line',
-            smooth: true
-          }]
-        }
-        chart.setOption(option)
-        window.addEventListener('resize', () => chart.resize())
-      }
-    }
-    
-    onMounted(() => {
-      loadDashboard()
-    })
-    
-    return {
-      dashboardData
-    }
-  }
+  name: 'Home'
 }
 </script>
 
 <style scoped>
-.home {
-  padding: 20px 0;
+.home-container {
+  padding: 20px;
+}
+
+.welcome-card {
+  background: white;
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.welcome-card h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 40px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .stat-card {
-  height: 150px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.stat-desc {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #606266;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  padding: 25px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  border-radius: 10px;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  font-size: 40px;
+  margin-right: 15px;
+}
+
+.stat-info {
+  text-align: left;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
 }
 </style>

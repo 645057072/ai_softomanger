@@ -1,141 +1,309 @@
 <template>
-  <el-container>
-    <el-header height="60px" class="header">
+  <div class="layout-container">
+    <!-- 上部布局：占据屏幕 1/30 高度 -->
+    <header class="top-header">
       <div class="header-content">
-        <div class="logo">考试系统</div>
-        <div class="right">
-          <el-dropdown>
-            <span class="user-info">
-              {{ userInfo?.real_name || userInfo?.username }}
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="handleProfile">个人中心</el-dropdown-item>
-                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+        <div class="logo">📚 考试系统</div>
+        <div class="header-info">
+          <span class="welcome">欢迎，{{ currentUser }}</span>
+          <span class="current-date">{{ currentDate }}</span>
+          <button class="btn-logout" @click="handleLogout">退出</button>
         </div>
       </div>
-    </el-header>
-    <el-container>
-      <el-aside width="200px" class="aside">
-        <el-menu
-          :default-active="activeMenu"
-          class="el-menu-vertical-demo"
-          router
-        >
-          <el-menu-item index="/">
-            <el-icon><home /></el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/questions">
-            <el-icon><document /></el-icon>
-            <span>题库管理</span>
-          </el-menu-item>
-          <el-menu-item index="/papers">
-            <el-icon><folder /></el-icon>
-            <span>试卷管理</span>
-          </el-menu-item>
-          <el-menu-item index="/exams">
-            <el-icon><timer /></el-icon>
-            <span>在线考试</span>
-          </el-menu-item>
-          <el-menu-item index="/scores">
-            <el-icon><trend-charts /></el-icon>
-            <span>成绩管理</span>
-          </el-menu-item>
-          <el-menu-item index="/system" v-if="isAdmin">
-            <el-icon><setting /></el-icon>
-            <span>系统管理</span>
-          </el-menu-item>
-        </el-menu>
-      </el-aside>
-      <el-main>
-        <slot />
-      </el-main>
-    </el-container>
-  </el-container>
+    </header>
+
+    <!-- 中间布局：左右分割 -->
+    <div class="main-container">
+      <!-- 左侧导航菜单：1/10 宽度 -->
+      <aside class="sidebar">
+        <nav class="nav-menu">
+          <div 
+            class="nav-item" 
+            :class="{ active: currentMenu === 'bi' }"
+            @click="navigateTo('bi')"
+          >
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">驾驶 BI</span>
+          </div>
+
+          <div 
+            class="nav-item" 
+            :class="{ active: currentMenu === 'study' }"
+            @click="navigateTo('study')"
+          >
+            <span class="nav-icon">📚</span>
+            <span class="nav-text">学习中心</span>
+          </div>
+
+          <div 
+            class="nav-item" 
+            :class="{ active: currentMenu === 'paper' }"
+            @click="navigateTo('paper')"
+          >
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">试卷中心</span>
+          </div>
+
+          <div 
+            class="nav-item" 
+            :class="{ active: currentMenu === 'exam' }"
+            @click="navigateTo('exam')"
+          >
+            <span class="nav-icon">✏️</span>
+            <span class="nav-text">考试中心</span>
+          </div>
+
+          <div 
+            class="nav-item" 
+            :class="{ active: currentMenu === 'system' }"
+            @click="navigateTo('system')"
+          >
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">系统设置</span>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- 右侧内容区：菜单窗口浏览区 -->
+      <main class="content-area">
+        <router-view />
+      </main>
+    </div>
+
+    <!-- 下部布局：占据屏幕 1/50 高度 -->
+    <footer class="bottom-footer">
+      <div class="footer-content">
+        <span>考试系统 © 2026 | Powered by Flask + Vue.js</span>
+        <span>技术支持</span>
+      </div>
+    </footer>
+  </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useUserStore } from '../../store'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'Layout',
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const userStore = useUserStore()
-    const activeMenu = ref('/')
-    
-    const userInfo = computed(() => userStore.userInfo)
-    const isAdmin = computed(() => userStore.isAdmin)
-    
-    onMounted(() => {
-      activeMenu.value = route.path
-    })
-    
-    const handleProfile = () => {
-      // 个人中心
-    }
-    
-    const handleLogout = () => {
-      userStore.logout()
-      router.push('/login')
-    }
-    
+  data() {
     return {
-      userInfo,
-      isAdmin,
-      activeMenu,
-      handleProfile,
-      handleLogout
+      currentMenu: 'bi',
+      currentDate: ''
+    }
+  },
+  computed: {
+    ...mapState(['user']),
+    currentUser() {
+      return this.user?.username || '用户'
+    }
+  },
+  mounted() {
+    this.updateDate()
+    setInterval(this.updateDate, 60000) // 每分钟更新一次
+    
+    // 根据路由设置当前菜单
+    this.setMenuFromRoute()
+  },
+  watch: {
+    '$route'() {
+      this.setMenuFromRoute()
+    }
+  },
+  methods: {
+    ...mapActions(['logout']),
+    
+    updateDate() {
+      const now = new Date()
+      this.currentDate = now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    },
+
+    setMenuFromRoute() {
+      const path = this.$route.path
+      if (path.includes('/bi')) this.currentMenu = 'bi'
+      else if (path.includes('/study')) this.currentMenu = 'study'
+      else if (path.includes('/paper')) this.currentMenu = 'paper'
+      else if (path.includes('/exam')) this.currentMenu = 'exam'
+      else if (path.includes('/system')) this.currentMenu = 'system'
+    },
+
+    navigateTo(menu) {
+      this.currentMenu = menu
+      const routes = {
+        'bi': '/bi',
+        'study': '/study',
+        'paper': '/paper',
+        'exam': '/exam',
+        'system': '/system'
+      }
+      this.$router.push(routes[menu])
+    },
+
+    handleLogout() {
+      this.$confirm('确定要退出系统吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.logout()
+        this.$message.success('已退出系统')
+        this.$router.push('/login')
+      }).catch(() => {})
     }
   }
 }
 </script>
 
 <style scoped>
-.header {
-  background-color: #409EFF;
-  color: white;
-  line-height: 60px;
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f7fa;
+}
+
+/* 上部布局：1/30 高度 */
+.top-header {
+  height: calc(100vh / 30);
+  min-height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
 }
 
 .header-content {
+  width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: white;
+  font-size: 14px;
+}
+
+.welcome {
+  font-weight: 500;
+}
+
+.current-date {
+  opacity: 0.9;
+}
+
+.btn-logout {
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 中间布局：左右分割 */
+.main-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧导航菜单：1/10 宽度 */
+.sidebar {
+  width: calc(100% / 10);
+  min-width: 180px;
+  max-width: 220px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+.nav-menu {
+  padding: 20px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-left: 3px solid transparent;
+  margin-bottom: 5px;
+}
+
+.nav-item:hover {
+  background: #f5f7fa;
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+  border-left-color: #667eea;
+  color: #667eea;
+}
+
+.nav-icon {
+  font-size: 20px;
+  margin-right: 12px;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 右侧内容区 */
+.content-area {
+  flex: 1;
+  background: #f5f7fa;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* 下部布局：1/50 高度 */
+.bottom-footer {
+  height: calc(100vh / 50);
+  min-height: 35px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
   align-items: center;
   padding: 0 20px;
 }
 
-.logo {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.user-info {
-  cursor: pointer;
+.footer-content {
+  width: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-}
-
-.aside {
-  background-color: #f0f2f5;
-  min-height: calc(100vh - 60px);
-}
-
-.el-menu-vertical-demo {
-  height: 100%;
-}
-
-.el-main {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 60px);
+  color: #999;
+  font-size: 12px;
 }
 </style>
