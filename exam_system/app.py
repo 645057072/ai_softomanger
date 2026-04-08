@@ -16,7 +16,7 @@ from flask_migrate import Migrate
 from exam_system.config import config
 from exam_system.extensions import db, jwt, cors, socketio, init_redis
 # 2026-04-08 14:30:00: 导入所有模型类，确保 db.create_all() 能正确创建所有表
-from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig, Organization, Role
+from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig, Organization, Role, Menu, RoleMenu
 
 
 def create_app(config_name='default'):
