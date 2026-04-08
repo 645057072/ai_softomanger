@@ -13,6 +13,14 @@
       <div class="header-content">
         <div class="logo">📚 考试系统</div>
         <div class="header-info">
+          <!-- 消息预警图标 -->
+          <div class="message-notification" @click="goToMessageCenter">
+            <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
+              <div class="message-icon">
+                <span>🔔</span>
+              </div>
+            </el-badge>
+          </div>
           <span class="welcome">欢迎，{{ currentUser }}</span>
           <span class="current-date">{{ currentDate }}</span>
           <button class="btn-logout" @click="handleLogout">退出</button>
@@ -96,7 +104,8 @@ export default {
   data() {
     return {
       currentMenu: 'bi',
-      currentDate: ''
+      currentDate: '',
+      unreadCount: 0
     }
   },
   computed: {
@@ -108,6 +117,8 @@ export default {
   mounted() {
     this.updateDate()
     setInterval(this.updateDate, 60000) // 每分钟更新一次
+    this.fetchUnreadCount()
+    setInterval(this.fetchUnreadCount, 30000) // 每 30 秒更新一次未读数
     
     // 根据路由设置当前菜单
     this.setMenuFromRoute()
@@ -161,6 +172,28 @@ export default {
         this.$message.success('已退出系统')
         this.$router.push('/login')
       }).catch(() => {})
+    },
+
+    // 获取未读消息数量
+    async fetchUnreadCount() {
+      try {
+        const response = await fetch('/api/user-management/pending?per_page=1', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        })
+        const result = await response.json()
+        if (result.code === 200) {
+          this.unreadCount = result.data.total || 0
+        }
+      } catch (error) {
+        console.error('获取未读消息数失败', error)
+      }
+    },
+
+    // 跳转到消息中心
+    goToMessageCenter() {
+      this.$router.push('/admin/user-approval')
     }
   }
 }
@@ -208,6 +241,33 @@ export default {
   gap: 20px;
   color: white;
   font-size: 14px;
+}
+
+/* 消息预警图标 */
+.message-notification {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.notification-badge {
+  display: inline-block;
+}
+
+.message-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-size: 20px;
+}
+
+.message-icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 .welcome {

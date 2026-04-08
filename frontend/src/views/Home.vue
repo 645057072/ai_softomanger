@@ -1,14 +1,5 @@
 <template>
   <div class="home-container">
-    <!-- 右上角消息预警图标 -->
-    <div class="message-notification" @click="goToMessageCenter">
-      <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
-        <div class="message-icon">
-          <span>🔔</span>
-        </div>
-      </el-badge>
-    </div>
-    
     <div class="welcome-card">
       <h1>欢迎使用考试系统</h1>
       <p class="subtitle">Online Examination System</p>
@@ -75,34 +66,11 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 
 export default {
   name: 'Home',
   setup() {
-    const router = useRouter()
     const organizationInfo = ref(null)
-    const unreadCount = ref(0)
-    
-    const fetchUnreadCount = async () => {
-      try {
-        const response = await fetch('/api/user-management/pending?per_page=1', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-          }
-        })
-        const result = await response.json()
-        if (result.code === 200) {
-          unreadCount.value = result.data.total || 0
-        }
-      } catch (error) {
-        console.error('获取未读消息数失败', error)
-      }
-    }
-    
-    const goToMessageCenter = () => {
-      router.push('/admin/user-approval')
-    }
     
     const fetchOrganization = async () => {
       try {
@@ -123,13 +91,10 @@ export default {
     onMounted(() => {
       console.log('Home component mounted')
       fetchOrganization()
-      fetchUnreadCount()
     })
     
     return {
-      organizationInfo,
-      unreadCount,
-      goToMessageCenter
+      organizationInfo
     }
   }
 }
@@ -144,37 +109,6 @@ export default {
   min-height: calc(100vh - 100px);
   padding: 20px;
   gap: 30px;
-  position: relative;
-}
-
-.message-notification {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  cursor: pointer;
-  z-index: 100;
-}
-
-.notification-badge {
-  display: inline-block;
-}
-
-.message-icon {
-  width: 50px;
-  height: 50px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
-  font-size: 24px;
-}
-
-.message-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .welcome-card {
