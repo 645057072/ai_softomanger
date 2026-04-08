@@ -54,6 +54,7 @@ function Deploy {
         Write-Host "-------------------------------------"
         Write-Host "Uploading frontend files..."
         
+        # 使用 scp 上传文件到服务器
         $scpCommand = "scp -r frontend/dist/* ${SERVER_USER}@${SERVER_IP}:${REMOTE_PATH}/frontend/dist/"
         Invoke-Expression $scpCommand
         Write-Host "Frontend files uploaded"
@@ -64,7 +65,8 @@ function Deploy {
         Write-Host "-------------------------------------"
         Write-Host "Restarting services..."
         
-        $restartCommand = "ssh ${SERVER_USER}@${SERVER_IP} 'cd ${REMOTE_PATH} && docker-compose down && docker-compose up -d'"
+        # 重启 Docker 服务
+        $restartCommand = "ssh ${SERVER_USER}@${SERVER_IP} 'cd ${REMOTE_PATH} && docker-compose restart nginx'"
         Invoke-Expression $restartCommand
         Write-Host "Services restarted"
 
