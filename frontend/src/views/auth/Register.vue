@@ -52,6 +52,20 @@
             prefix-icon="Avatar"
           />
         </el-form-item>
+        <el-form-item label="身份证号" prop="idCard">
+          <el-input
+            v-model="registerForm.idCard"
+            placeholder="请输入身份证号码"
+            prefix-icon="Document"
+          />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input
+            v-model="registerForm.phone"
+            placeholder="请输入手机号"
+            prefix-icon="Phone"
+          />
+        </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
@@ -83,12 +97,14 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      realName: ''
+      realName: '',
+      idCard: '',
+      phone: ''
     })
     const rules = {
       username: [
         { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, max: 20, message: '用户名长度在3-20之间', trigger: 'blur' }
+        { min: 3, max: 20, message: '用户名长度在 3-20 之间', trigger: 'blur' }
       ],
       email: [
         { required: true, message: '请输入邮箱', trigger: 'blur' },
@@ -96,7 +112,7 @@ export default {
       ],
       password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+        { min: 6, message: '密码长度不能少于 6 位', trigger: 'blur' }
       ],
       confirmPassword: [
         { required: true, message: '请确认密码', trigger: 'blur' },
@@ -113,6 +129,22 @@ export default {
       ],
       realName: [
         { required: true, message: '请输入真实姓名', trigger: 'blur' }
+      ],
+      idCard: [
+        { required: true, message: '请输入身份证号码', trigger: 'blur' },
+        {
+          pattern: /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/,
+          message: '请输入正确的身份证号码',
+          trigger: 'blur'
+        }
+      ],
+      phone: [
+        { required: true, message: '请输入手机号', trigger: 'blur' },
+        {
+          pattern: /^1[3-9]\d{9}$/,
+          message: '请输入正确的手机号',
+          trigger: 'blur'
+        }
       ]
     }
 
@@ -123,10 +155,12 @@ export default {
           username: registerForm.username,
           email: registerForm.email,
           password: registerForm.password,
-          real_name: registerForm.realName
+          real_name: registerForm.realName,
+          id_card: registerForm.idCard,
+          phone: registerForm.phone
         })
         if (response.code === 200) {
-          ElMessage.success('注册成功，请登录')
+          ElMessage.success('注册成功，请等待管理员审核')
           router.push('/login')
         } else {
           ElMessage.error(response.message)

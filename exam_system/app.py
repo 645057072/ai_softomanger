@@ -96,6 +96,8 @@ def register_blueprints(app):
     from exam_system.api.score import score_bp
     from exam_system.api.upload import upload_bp
     from exam_system.api.system import system_bp
+    from exam_system.api.organization import organization_bp
+    from exam_system.api.user_management import user_management_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/user')
@@ -105,6 +107,8 @@ def register_blueprints(app):
     app.register_blueprint(score_bp, url_prefix='/api/score')
     app.register_blueprint(upload_bp, url_prefix='/api/upload')
     app.register_blueprint(system_bp, url_prefix='/api/system')
+    app.register_blueprint(organization_bp, url_prefix='/api/organization')
+    app.register_blueprint(user_management_bp, url_prefix='/api/user-management')
 
 
 def register_error_handlers(app):

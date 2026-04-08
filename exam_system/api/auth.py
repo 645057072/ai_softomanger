@@ -74,7 +74,10 @@ def login():
         increment_login_attempts(username, ip_address)
         return jsonify({'code': 401, 'message': '用户名或密码错误', 'data': None}), 401
     
-    if user.status != 1:
+    if user.status == 0:
+        return jsonify({'code': 403, 'message': '账户待审核，请联系管理员审核', 'data': None}), 403
+    
+    if user.status == 2:
         return jsonify({'code': 403, 'message': '账户已被禁用', 'data': None}), 403
     
     # 重置登录失败次数
@@ -95,7 +98,7 @@ def login():
     db.session.add(log)
     db.session.commit()
     
-    # 生成Token
+    # 生成 Token
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
     
@@ -119,6 +122,8 @@ def register():
     email = data.get('email')
     password = data.get('password')
     real_name = data.get('real_name', username)
+    phone = data.get('phone', '')
+    id_card = data.get('id_card', '')
     
     # 检查用户名是否存在
     if User.query.filter_by(username=username).first():
@@ -128,13 +133,15 @@ def register():
     if User.query.filter_by(email=email).first():
         return jsonify({'code': 400, 'message': '邮箱已被注册', 'data': None}), 400
     
-    # 创建用户
+    # 创建用户（状态为待审核）
     user = User(
         username=username,
         email=email,
         real_name=real_name,
+        phone=phone,
+        id_card=id_card,
         role='student',
-        status=1
+        status=0  # 待审核状态
     )
     user.set_password(password)
     
@@ -143,7 +150,7 @@ def register():
     
     return jsonify({
         'code': 200,
-        'message': '注册成功',
+        'message': '注册成功，请等待管理员审核',
         'data': user.to_dict()
     })
 

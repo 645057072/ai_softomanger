@@ -20,8 +20,9 @@ class User(db.Model):
     real_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     phone = db.Column(db.String(20), nullable=True)
+    id_card = db.Column(db.String(18), nullable=True)  # 身份证号码
     role = db.Column(db.String(20), nullable=False, default='student')  # student, teacher, admin
-    status = db.Column(db.Integer, default=1)  # 1:正常 0:禁用
+    status = db.Column(db.Integer, default=0)  # 0:待审核 1:正常 2:禁用
     avatar = db.Column(db.String(255), nullable=True)
     last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -40,6 +41,7 @@ class User(db.Model):
             'real_name': self.real_name,
             'email': self.email,
             'phone': self.phone,
+            'id_card': self.id_card,
             'role': self.role,
             'status': self.status,
             'avatar': self.avatar,
@@ -305,3 +307,92 @@ class SystemConfig(db.Model):
     config_value = db.Column(db.Text, nullable=True)
     description = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Organization(db.Model):
+    """组织机构表"""
+    __tablename__ = 'organizations'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(200), nullable=False)  # 组织机构名称
+    tax_id = db.Column(db.String(50), nullable=True)  # 纳税人识别号
+    address = db.Column(db.String(500), nullable=True)  # 注册地址
+    phone = db.Column(db.String(20), nullable=True)  # 联系电话
+    legal_representative = db.Column(db.String(50), nullable=True)  # 法定代表人
+    registration_date = db.Column(db.Date, nullable=True)  # 注册日期
+    industry = db.Column(db.String(100), nullable=True)  # 所属行业
+    status = db.Column(db.Integer, default=1)  # 1:正常 0:禁用
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'tax_id': self.tax_id,
+            'address': self.address,
+            'phone': self.phone,
+            'legal_representative': self.legal_representative,
+            'registration_date': self.registration_date.isoformat() if self.registration_date else None,
+            'industry': self.industry,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class Role(db.Model):
+    """角色表"""
+    __tablename__ = 'roles'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'status': self.status
+        }
+
+
+class Menu(db.Model):
+    """菜单表"""
+    __tablename__ = 'menus'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('menus.id'), default=0)
+    name = db.Column(db.String(50), nullable=False)
+    path = db.Column(db.String(255), nullable=True)
+    icon = db.Column(db.String(50), nullable=True)
+    order = db.Column(db.Integer, default=0)
+    status = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    parent = db.relationship('Menu', remote_side=[id], backref='children')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'parent_id': self.parent_id,
+            'name': self.name,
+            'path': self.path,
+            'icon': self.icon,
+            'order': self.order,
+            'status': self.status
+        }
+
+
+class RoleMenu(db.Model):
+    """角色菜单关联表"""
+    __tablename__ = 'role_menus'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
+    menu_id = db.Column(db.Integer, db.ForeignKey('menus.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (db.UniqueConstraint('role_id', 'menu_id'),)

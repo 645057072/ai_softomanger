@@ -76,6 +76,30 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    path: '/admin/organization',
+    name: 'Organization',
+    component: () => import('../views/admin/Organization.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/admin/user-approval',
+    name: 'UserApproval',
+    component: () => import('../views/admin/UserApproval.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/admin/user-management',
+    name: 'UserManagement',
+    component: () => import('../views/admin/UserManagement.vue'),
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 
