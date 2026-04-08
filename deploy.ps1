@@ -66,7 +66,7 @@ function Deploy {
         Write-Host "Restarting services..."
         
         # 重启 Docker 服务
-        $restartCommand = "ssh ${SERVER_USER}@${SERVER_IP} 'cd ${REMOTE_PATH} && docker-compose restart nginx'"
+        $restartCommand = "ssh ${SERVER_USER}@${SERVER_IP} 'cd ${REMOTE_PATH} && docker compose restart nginx'"
         Invoke-Expression $restartCommand
         Write-Host "Services restarted"
 
