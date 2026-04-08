@@ -1,11 +1,3 @@
-<!--
-  文件名：Home.vue
-  描述：系统首页组件
-  作者：Li zekun
-  创建日期：2026-04-08
-  最后修改：2026-04-08
--->
-
 <template>
   <div class="home-container">
     <div class="welcome-card">
@@ -39,14 +31,71 @@
         </div>
       </div>
     </div>
+    
+    <!-- 组织机构信息显示 -->
+    <div class="organization-info-card" v-if="organizationInfo">
+      <div class="org-header">
+        <span class="org-icon">🏢</span>
+        <h2>{{ organizationInfo.name }}</h2>
+      </div>
+      <div class="org-content">
+        <div class="org-row">
+          <span class="org-label">纳税人识别号：</span>
+          <span class="org-value">{{ organizationInfo.tax_id || '未设置' }}</span>
+        </div>
+        <div class="org-row">
+          <span class="org-label">注册地址：</span>
+          <span class="org-value">{{ organizationInfo.address || '未设置' }}</span>
+        </div>
+        <div class="org-row">
+          <span class="org-label">联系电话：</span>
+          <span class="org-value">{{ organizationInfo.phone || '未设置' }}</span>
+        </div>
+        <div class="org-row">
+          <span class="org-label">法定代表人：</span>
+          <span class="org-value">{{ organizationInfo.legal_representative || '未设置' }}</span>
+        </div>
+        <div class="org-row">
+          <span class="org-label">所属行业：</span>
+          <span class="org-value">{{ organizationInfo.industry || '未设置' }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { ref, onMounted } from 'vue'
+
 export default {
   name: 'Home',
-  mounted() {
-    console.log('Home component mounted')
+  setup() {
+    const organizationInfo = ref(null)
+    
+    const fetchOrganization = async () => {
+      try {
+        const response = await fetch('/api/organization?page=1&per_page=1', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        })
+        const result = await response.json()
+        if (result.code === 200 && result.data.list && result.data.list.length > 0) {
+          organizationInfo.value = result.data.list[0]
+        }
+      } catch (error) {
+        console.error('获取组织机构信息失败', error)
+      }
+    }
+    
+    onMounted(() => {
+      console.log('Home component mounted')
+      fetchOrganization()
+    })
+    
+    return {
+      organizationInfo
+    }
   }
 }
 </script>
@@ -54,10 +103,12 @@ export default {
 <style scoped>
 .home-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 100px);
   padding: 20px;
+  gap: 30px;
 }
 
 .welcome-card {
@@ -117,5 +168,65 @@ export default {
   color: #555;
   font-size: 16px;
   font-weight: 500;
+}
+
+.organization-info-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #667eea;
+}
+
+.org-icon {
+  font-size: 36px;
+  margin-right: 15px;
+}
+
+.org-header h2 {
+  color: #333;
+  font-size: 24px;
+  margin: 0;
+}
+
+.org-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.org-row {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.org-label {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.org-value {
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .org-content {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
