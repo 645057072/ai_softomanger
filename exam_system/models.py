@@ -4,10 +4,9 @@
 """
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
 import json
 
-db = SQLAlchemy()
+from exam_system.extensions import db
 
 
 class User(db.Model):
