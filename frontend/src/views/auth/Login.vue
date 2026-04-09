@@ -91,11 +91,15 @@ export default {
           this.$router.push('/home')
         } else {
           this.$message.error(result.message)
+          // 用户名保留，清空密码便于重新输入
+          this.password = ''
         }
       } catch (error) {
         console.error('登录失败:', error)
         const backendMessage = error?.response?.data?.message
         this.$message.error(backendMessage || '登录失败，请检查网络连接')
+        // 用户名保留，清空密码便于重新输入
+        this.password = ''
       }
     },
 

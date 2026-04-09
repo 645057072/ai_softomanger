@@ -17,7 +17,7 @@
           <div class="message-notification" @click="goToMessageCenter">
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
               <div class="message-icon">
-                <span>消息</span>
+                <img :src="messageIcon" alt="消息" />
               </div>
             </el-badge>
           </div>
@@ -181,6 +181,7 @@ import userIcon from '../assets/icons/user.svg'
 import roleIcon from '../assets/icons/role.svg'
 import authIcon from '../assets/icons/auth.svg'
 import dataIcon from '../assets/icons/data.svg'
+import messageIcon from '../assets/icons/message.svg'
 
 export default {
   name: 'Layout',
@@ -205,6 +206,7 @@ export default {
     this.roleIcon = roleIcon
     this.authIcon = authIcon
     this.dataIcon = dataIcon
+    this.messageIcon = messageIcon
   },
   computed: {
     currentUser() {
@@ -405,7 +407,12 @@ export default {
   align-items: center;
   justify-content: center;
   transition: all 0.3s;
-  font-size: 20px;
+}
+
+.message-icon img {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .message-icon:hover {
