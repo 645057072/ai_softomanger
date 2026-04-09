@@ -89,6 +89,7 @@
 <script>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { organizationApi } from '../../api'
 
 export default {
   name: 'Organization',
@@ -119,21 +120,19 @@ export default {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `/api/organization?page=${pagination.page}&per_page=${pagination.per_page}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        )
-        const result = await response.json()
+        const result = await organizationApi.getList({
+          page: pagination.page,
+          per_page: pagination.per_page
+        })
         if (result.code === 200) {
           tableData.value = result.data.list
           pagination.total = result.data.total
+        } else {
+          ElMessage.error(result.message || '获取数据失败')
         }
       } catch (error) {
-        ElMessage.error('获取数据失败')
+        const backendMessage = error?.response?.data?.message
+        ElMessage.error(backendMessage || '获取数据失败')
       }
     }
 
@@ -167,15 +166,9 @@ export default {
               ? `/api/organization/${formData.id}`
               : '/api/organization'
             const method = formData.id ? 'PUT' : 'POST'
-            const response = await fetch(url, {
-              method,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              body: JSON.stringify(formData)
-            })
-            const result = await response.json()
+            const result = formData.id
+              ? await organizationApi.update(formData.id, formData)
+              : await organizationApi.create(formData)
             if (result.code === 200) {
               ElMessage.success(dialogTitle.value === '新增' ? '创建成功' : '更新成功')
               dialogVisible.value = false
@@ -184,7 +177,8 @@ export default {
               ElMessage.error(result.message)
             }
           } catch (error) {
-            ElMessage.error('操作失败')
+            const backendMessage = error?.response?.data?.message
+            ElMessage.error(backendMessage || '操作失败')
           }
         }
       })
@@ -197,13 +191,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const response = await fetch(`/api/organization/${row.id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          })
-          const result = await response.json()
+          const result = await organizationApi.remove(row.id)
           if (result.code === 200) {
             ElMessage.success('删除成功')
             fetchData()
@@ -211,7 +199,8 @@ export default {
             ElMessage.error(result.message)
           }
         } catch (error) {
-          ElMessage.error('删除失败')
+          const backendMessage = error?.response?.data?.message
+          ElMessage.error(backendMessage || '删除失败')
         }
       })
     }

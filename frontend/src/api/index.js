@@ -144,4 +144,13 @@ export const systemApi = {
   healthCheck: () => api.get('/system/health')
 }
 
+// 组织机构管理
+export const organizationApi = {
+  getList: (params) => api.get('/organization', { params }),
+  getDetail: (id) => api.get(`/organization/${id}`),
+  create: (data) => api.post('/organization', data),
+  update: (id, data) => api.put(`/organization/${id}`, data),
+  remove: (id) => api.delete(`/organization/${id}`)
+}
+
 export default api

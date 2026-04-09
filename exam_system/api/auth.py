@@ -14,6 +14,20 @@ from exam_system.utils.validators import user_login_schema, user_register_schema
 
 auth_bp = Blueprint('auth', __name__)
 
+def _is_strong_password(password: str) -> bool:
+    """
+    强密码规则：
+    - 长度不少于 8
+    - 同时包含：大写字母、小写字母、数字、特殊字符
+    """
+    if not isinstance(password, str) or len(password) < 8:
+        return False
+    has_upper = any('A' <= c <= 'Z' for c in password)
+    has_lower = any('a' <= c <= 'z' for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(not c.isalnum() for c in password)
+    return has_upper and has_lower and has_digit and has_special
+
 
 def check_login_attempts(username, ip_address):
     """检查登录失败次数和冷却时间"""
@@ -129,13 +143,29 @@ def register():
     phone = data.get('phone', '')
     id_card = data.get('id_card', '')
     
+    if not _is_strong_password(password):
+        return jsonify({
+            'code': 400,
+            'message': '密码强度不足，请使用至少8位且包含大小写字母、数字、特殊字符的强密码',
+            'data': None
+        }), 400
+
     # 检查用户名是否存在
     if User.query.filter_by(username=username).first():
-        return jsonify({'code': 400, 'message': '用户名已存在', 'data': None}), 400
+        return jsonify({'code': 400, 'message': '用户名已注册，请使用已注册账号登录', 'data': None}), 400
     
     # 检查邮箱是否存在
     if User.query.filter_by(email=email).first():
-        return jsonify({'code': 400, 'message': '邮箱已被注册', 'data': None}), 400
+        return jsonify({'code': 400, 'message': '邮箱已注册，请使用已注册账号登录', 'data': None}), 400
+
+    if phone and User.query.filter_by(phone=phone).first():
+        return jsonify({'code': 400, 'message': '手机号已注册，请使用已注册账号登录', 'data': None}), 400
+
+    if id_card and User.query.filter_by(id_card=id_card).first():
+        return jsonify({'code': 400, 'message': '身份证号已注册，请使用已注册账号登录', 'data': None}), 400
+
+    if real_name and User.query.filter_by(real_name=real_name).first():
+        return jsonify({'code': 400, 'message': '真实姓名已注册，请使用已注册账号登录', 'data': None}), 400
     
     # 创建用户（状态为待审核）
     user = User(

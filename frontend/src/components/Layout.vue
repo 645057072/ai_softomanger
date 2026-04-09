@@ -38,7 +38,7 @@
             :class="{ active: currentMenu === 'bi' }"
             @click="navigateTo('bi')"
           >
-            <span class="nav-icon">BI</span>
+            <span class="nav-icon"><img :src="biIcon" alt="BI" /></span>
             <span class="nav-text">驾驶 BI</span>
           </div>
 
@@ -47,7 +47,7 @@
             :class="{ active: currentMenu === 'study' }"
             @click="navigateTo('study')"
           >
-            <span class="nav-icon">学</span>
+            <span class="nav-icon"><img :src="studyIcon" alt="学习" /></span>
             <span class="nav-text">学习中心</span>
           </div>
 
@@ -56,7 +56,7 @@
             :class="{ active: currentMenu === 'paper' }"
             @click="navigateTo('paper')"
           >
-            <span class="nav-icon">卷</span>
+            <span class="nav-icon"><img :src="paperIcon" alt="试卷" /></span>
             <span class="nav-text">试卷中心</span>
           </div>
 
@@ -65,7 +65,7 @@
             :class="{ active: currentMenu === 'exam' }"
             @click="navigateTo('exam')"
           >
-            <span class="nav-icon">考</span>
+            <span class="nav-icon"><img :src="examIcon" alt="考试" /></span>
             <span class="nav-text">考试中心</span>
           </div>
 
@@ -76,7 +76,7 @@
               :class="{ active: currentMenu === 'system' }"
               @click="toggleSystemMenu"
             >
-              <span class="nav-icon">设</span>
+              <span class="nav-icon"><img :src="settingsIcon" alt="设置" /></span>
               <span class="nav-text">系统设置</span>
               <span class="nav-arrow" :class="{ 'arrow-down': systemMenuExpanded }">▶</span>
             </div>
@@ -171,6 +171,11 @@
 
 <script>
 import { useUserStore } from '../store'
+import biIcon from '../assets/icons/bi.svg'
+import studyIcon from '../assets/icons/study.svg'
+import paperIcon from '../assets/icons/paper.svg'
+import examIcon from '../assets/icons/exam.svg'
+import settingsIcon from '../assets/icons/settings.svg'
 
 export default {
   name: 'Layout',
@@ -183,6 +188,13 @@ export default {
       userSubmenuExpanded: false,
       currentSubmenu: ''
     }
+  },
+  created() {
+    this.biIcon = biIcon
+    this.studyIcon = studyIcon
+    this.paperIcon = paperIcon
+    this.examIcon = examIcon
+    this.settingsIcon = settingsIcon
   },
   computed: {
     currentUser() {
@@ -456,10 +468,18 @@ export default {
 }
 
 .nav-icon {
-  font-size: 20px;
   margin-right: 12px;
   width: 24px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon img {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .nav-text {

@@ -6,27 +6,27 @@
       
       <div class="quick-actions">
         <div class="action-item" @click="$router.push('/bi')">
-          <div class="action-icon">BI</div>
+          <div class="action-icon"><img :src="biIcon" alt="BI" /></div>
           <div class="action-text">驾驶 BI</div>
         </div>
         
         <div class="action-item" @click="$router.push('/study')">
-          <div class="action-icon">学</div>
+          <div class="action-icon"><img :src="studyIcon" alt="学习" /></div>
           <div class="action-text">学习中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/paper')">
-          <div class="action-icon">卷</div>
+          <div class="action-icon"><img :src="paperIcon" alt="试卷" /></div>
           <div class="action-text">试卷中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/exam')">
-          <div class="action-icon">考</div>
+          <div class="action-icon"><img :src="examIcon" alt="考试" /></div>
           <div class="action-text">考试中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/system')">
-          <div class="action-icon">设</div>
+          <div class="action-icon"><img :src="settingsIcon" alt="设置" /></div>
           <div class="action-text">系统设置</div>
         </div>
       </div>
@@ -66,6 +66,11 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import biIcon from '../assets/icons/bi.svg'
+import studyIcon from '../assets/icons/study.svg'
+import paperIcon from '../assets/icons/paper.svg'
+import examIcon from '../assets/icons/exam.svg'
+import settingsIcon from '../assets/icons/settings.svg'
 
 export default {
   name: 'Home',
@@ -94,6 +99,11 @@ export default {
     })
     
     return {
+      biIcon,
+      studyIcon,
+      paperIcon,
+      examIcon,
+      settingsIcon,
       organizationInfo
     }
   }
@@ -160,8 +170,18 @@ export default {
 }
 
 .action-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon img {
+  width: 48px;
+  height: 48px;
+  display: block;
 }
 
 .action-text {

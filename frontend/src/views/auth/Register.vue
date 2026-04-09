@@ -8,7 +8,7 @@
         </div>
       </template>
       <el-form
-        ref="registerForm"
+        ref="registerFormRef"
         :model="registerForm"
         :rules="rules"
         label-position="top"
@@ -17,14 +17,12 @@
           <el-input
             v-model="registerForm.username"
             placeholder="请输入用户名"
-            prefix-icon="User"
           />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input
             v-model="registerForm.email"
             placeholder="请输入邮箱"
-            prefix-icon="Message"
           />
         </el-form-item>
         <el-form-item label="密码" prop="password">
@@ -32,7 +30,6 @@
             v-model="registerForm.password"
             type="password"
             placeholder="请输入密码"
-            prefix-icon="Lock"
             show-password
           />
         </el-form-item>
@@ -41,7 +38,6 @@
             v-model="registerForm.confirmPassword"
             type="password"
             placeholder="请再次输入密码"
-            prefix-icon="Lock"
             show-password
           />
         </el-form-item>
@@ -49,21 +45,18 @@
           <el-input
             v-model="registerForm.realName"
             placeholder="请输入真实姓名"
-            prefix-icon="Avatar"
           />
         </el-form-item>
         <el-form-item label="身份证号" prop="idCard">
           <el-input
             v-model="registerForm.idCard"
             placeholder="请输入身份证号码"
-            prefix-icon="Document"
           />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
           <el-input
             v-model="registerForm.phone"
             placeholder="请输入手机号"
-            prefix-icon="Phone"
           />
         </el-form-item>
         <el-form-item>
@@ -85,6 +78,7 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { authApi } from '../../api'
 
 export default {
@@ -92,6 +86,7 @@ export default {
   setup() {
     const router = useRouter()
     const loading = ref(false)
+    const registerFormRef = ref(null)
     const registerForm = reactive({
       username: '',
       email: '',
@@ -112,7 +107,16 @@ export default {
       ],
       password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, message: '密码长度不能少于 6 位', trigger: 'blur' }
+        {
+          min: 8,
+          message: '密码长度不能少于 8 位',
+          trigger: 'blur'
+        },
+        {
+          pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,
+          message: '密码需包含大小写字母、数字、特殊字符',
+          trigger: 'blur'
+        }
       ],
       confirmPassword: [
         { required: true, message: '请确认密码', trigger: 'blur' },
@@ -149,6 +153,10 @@ export default {
     }
 
     const handleRegister = async () => {
+      if (registerFormRef.value) {
+        const valid = await registerFormRef.value.validate().catch(() => false)
+        if (!valid) return
+      }
       loading.value = true
       try {
         const response = await authApi.register({
@@ -166,13 +174,15 @@ export default {
           ElMessage.error(response.message)
         }
       } catch (error) {
-        ElMessage.error('注册失败，请检查网络连接')
+        const backendMessage = error?.response?.data?.message
+        ElMessage.error(backendMessage || '注册失败，请检查网络连接')
       } finally {
         loading.value = false
       }
     }
 
     return {
+      registerFormRef,
       registerForm,
       rules,
       loading,

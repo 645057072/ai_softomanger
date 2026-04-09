@@ -10,9 +10,11 @@ user_login_schema = {
 
 user_register_schema = {
     'username': {'required': True, 'type': str, 'min_length': 3, 'max_length': 50},
-    'password': {'required': True, 'type': str, 'min_length': 6, 'max_length': 100},
+    'password': {'required': True, 'type': str, 'min_length': 8, 'max_length': 100},
     'email': {'required': True, 'type': str, 'max_length': 100},
-    'real_name': {'required': False, 'type': str, 'max_length': 50}
+    'real_name': {'required': True, 'type': str, 'min_length': 1, 'max_length': 50},
+    'phone': {'required': True, 'type': str, 'min_length': 11, 'max_length': 20},
+    'id_card': {'required': True, 'type': str, 'min_length': 15, 'max_length': 18},
 }
 
 question_schema = {

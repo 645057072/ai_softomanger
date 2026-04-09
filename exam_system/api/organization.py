@@ -12,6 +12,16 @@ from exam_system.utils.decorators import validate_json
 
 organization_bp = Blueprint('organization', __name__)
 
+_organization_schema = {
+    'name': {'required': True, 'type': str, 'min_length': 1, 'max_length': 200},
+    'tax_id': {'required': False, 'type': str, 'max_length': 50},
+    'address': {'required': False, 'type': str, 'max_length': 500},
+    'phone': {'required': False, 'type': str, 'max_length': 20},
+    'legal_representative': {'required': False, 'type': str, 'max_length': 50},
+    'registration_date': {'required': False, 'type': str, 'max_length': 20},
+    'industry': {'required': False, 'type': str, 'max_length': 100},
+}
+
 
 @organization_bp.route('', methods=['GET'])
 @jwt_required()
@@ -70,19 +80,7 @@ def get_organization(org_id):
 
 @organization_bp.route('', methods=['POST'])
 @jwt_required()
-@validate_json({
-    'type': 'object',
-    'properties': {
-        'name': {'type': 'string'},
-        'tax_id': {'type': 'string'},
-        'address': {'type': 'string'},
-        'phone': {'type': 'string'},
-        'legal_representative': {'type': 'string'},
-        'registration_date': {'type': 'string'},
-        'industry': {'type': 'string'}
-    },
-    'required': ['name']
-})
+@validate_json(_organization_schema)
 def create_organization():
     """创建组织机构"""
     user_id = get_jwt_identity()
@@ -128,18 +126,7 @@ def create_organization():
 
 @organization_bp.route('/<int:org_id>', methods=['PUT'])
 @jwt_required()
-@validate_json({
-    'type': 'object',
-    'properties': {
-        'name': {'type': 'string'},
-        'tax_id': {'type': 'string'},
-        'address': {'type': 'string'},
-        'phone': {'type': 'string'},
-        'legal_representative': {'type': 'string'},
-        'registration_date': {'type': 'string'},
-        'industry': {'type': 'string'}
-    }
-})
+@validate_json({k: {**v, 'required': False} for k, v in _organization_schema.items()})
 def update_organization(org_id):
     """更新组织机构"""
     user_id = get_jwt_identity()
