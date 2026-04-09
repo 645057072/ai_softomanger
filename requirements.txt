@@ -2,7 +2,6 @@
 Flask==2.0.1
 Werkzeug==2.0.3
 gunicorn>=23.0.0
-setuptools>=40.0,<81
 
 # Flask 扩展
 Flask-SQLAlchemy==2.5.1
