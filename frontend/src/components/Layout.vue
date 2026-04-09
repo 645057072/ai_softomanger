@@ -88,7 +88,7 @@
                 :class="{ active: currentSubmenu === 'organization' }"
                 @click="navigateToSubmenu('organization', '/admin/organization')"
               >
-                <span class="submenu-icon">机</span>
+                <span class="submenu-icon"><img :src="orgIcon" alt="组织机构" /></span>
                 <span class="submenu-text">组织机构管理</span>
               </div>
               
@@ -97,7 +97,7 @@
                 :class="{ active: currentSubmenu === 'user' }"
                 @click="toggleUserSubmenu"
               >
-                <span class="submenu-icon">用</span>
+                <span class="submenu-icon"><img :src="userIcon" alt="用户" /></span>
                 <span class="submenu-text">用户管理</span>
                 <span class="submenu-arrow" :class="{ 'arrow-down': userSubmenuExpanded }">▶</span>
               </div>
@@ -127,7 +127,7 @@
                 :class="{ active: currentSubmenu === 'role' }"
                 @click="navigateToSubmenu('role', '/admin/role')"
               >
-                <span class="submenu-icon">角</span>
+                <span class="submenu-icon"><img :src="roleIcon" alt="角色" /></span>
                 <span class="submenu-text">角色管理</span>
               </div>
               
@@ -136,7 +136,7 @@
                 :class="{ active: currentSubmenu === 'authorization' }"
                 @click="navigateToSubmenu('authorization', '/admin/authorization')"
               >
-                <span class="submenu-icon">权</span>
+                <span class="submenu-icon"><img :src="authIcon" alt="授权" /></span>
                 <span class="submenu-text">功能授权</span>
               </div>
               
@@ -145,7 +145,7 @@
                 :class="{ active: currentSubmenu === 'data' }"
                 @click="navigateToSubmenu('data', '/admin/data')"
               >
-                <span class="submenu-icon">数</span>
+                <span class="submenu-icon"><img :src="dataIcon" alt="数据" /></span>
                 <span class="submenu-text">数据管理</span>
               </div>
             </div>
@@ -176,6 +176,11 @@ import studyIcon from '../assets/icons/study.svg'
 import paperIcon from '../assets/icons/paper.svg'
 import examIcon from '../assets/icons/exam.svg'
 import settingsIcon from '../assets/icons/settings.svg'
+import orgIcon from '../assets/icons/org.svg'
+import userIcon from '../assets/icons/user.svg'
+import roleIcon from '../assets/icons/role.svg'
+import authIcon from '../assets/icons/auth.svg'
+import dataIcon from '../assets/icons/data.svg'
 
 export default {
   name: 'Layout',
@@ -195,6 +200,11 @@ export default {
     this.paperIcon = paperIcon
     this.examIcon = examIcon
     this.settingsIcon = settingsIcon
+    this.orgIcon = orgIcon
+    this.userIcon = userIcon
+    this.roleIcon = roleIcon
+    this.authIcon = authIcon
+    this.dataIcon = dataIcon
   },
   computed: {
     currentUser() {
@@ -535,10 +545,18 @@ export default {
 }
 
 .submenu-icon {
-  font-size: 18px;
   margin-right: 10px;
   width: 20px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submenu-icon img {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .submenu-text {
