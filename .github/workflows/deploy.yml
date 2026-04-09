@@ -21,13 +21,35 @@ jobs:
     - name: Deploy to Server
       run: |
         ssh -o StrictHostKeyChecking=no root@47.93.44.247 << 'ENDSSH'
+          set -e
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+
+          echo "=== Env ==="
+          whoami || true
+          pwd || true
+          echo "PATH=$PATH"
+
+          echo "=== Docker ==="
+          command -v docker
+          docker --version
+
+          echo "=== Compose detect ==="
+          if docker compose version >/dev/null 2>&1; then
+            COMPOSE="docker compose"
+          elif command -v docker-compose >/dev/null 2>&1; then
+            COMPOSE="docker-compose"
+          else
+            echo "ERROR: docker compose / docker-compose not found in PATH"
+            exit 127
+          fi
+          echo "Using: $COMPOSE"
+          $COMPOSE version || true
+
           cd /opt/ai_softomanger
           git pull origin master
-          docker --version
-          docker compose version
-          docker compose down
-          docker compose up -d --build
-          docker compose restart nginx
+          $COMPOSE down
+          $COMPOSE up -d --build
+          $COMPOSE restart nginx
         ENDSSH
     
     - name: Deployment Complete
