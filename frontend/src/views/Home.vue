@@ -6,27 +6,27 @@
       
       <div class="quick-actions">
         <div class="action-item" @click="$router.push('/bi')">
-          <div class="action-icon">📊</div>
+          <div class="action-icon">BI</div>
           <div class="action-text">驾驶 BI</div>
         </div>
         
         <div class="action-item" @click="$router.push('/study')">
-          <div class="action-icon">📚</div>
+          <div class="action-icon">学</div>
           <div class="action-text">学习中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/paper')">
-          <div class="action-icon">📝</div>
+          <div class="action-icon">卷</div>
           <div class="action-text">试卷中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/exam')">
-          <div class="action-icon">✏️</div>
+          <div class="action-icon">考</div>
           <div class="action-text">考试中心</div>
         </div>
         
         <div class="action-item" @click="$router.push('/system')">
-          <div class="action-icon">⚙️</div>
+          <div class="action-icon">设</div>
           <div class="action-text">系统设置</div>
         </div>
       </div>
@@ -35,7 +35,7 @@
     <!-- 组织机构信息显示 -->
     <div class="organization-info-card" v-if="organizationInfo">
       <div class="org-header">
-        <span class="org-icon">🏢</span>
+        <span class="org-icon">ORG</span>
         <h2>{{ organizationInfo.name }}</h2>
       </div>
       <div class="org-content">

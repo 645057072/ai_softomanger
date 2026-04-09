@@ -2,6 +2,7 @@
 Flask==2.0.1
 Werkzeug==2.0.3
 gunicorn>=23.0.0
+setuptools>=40.0,<81
 
 # Flask 扩展
 Flask-SQLAlchemy==2.5.1
@@ -16,7 +17,7 @@ psycopg2-binary==2.9.3
 redis==4.3.4
 
 # 其他工具
-pdfplumber==0.7.2
+pdfplumber==0.5.28
 PyPDF2==2.10.4
 python-docx==0.8.11
 openpyxl==3.0.10

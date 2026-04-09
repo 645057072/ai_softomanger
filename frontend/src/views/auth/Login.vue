@@ -10,7 +10,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <div class="logo">📚</div>
+        <div class="logo"></div>
         <h1>考试系统</h1>
         <p class="subtitle">Online Examination System</p>
       </div>
@@ -58,6 +58,7 @@
 
 <script>
 import { useUserStore } from '../../store'
+import { authApi } from '../../api'
 
 export default {
   name: 'Login',
@@ -76,18 +77,10 @@ export default {
       }
 
       try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: this.username,
-            password: this.password
-          })
+        const result = await authApi.login({
+          username: this.username,
+          password: this.password
         })
-
-        const result = await response.json()
 
         if (result.code === 200) {
           const userStore = useUserStore()
@@ -101,7 +94,8 @@ export default {
         }
       } catch (error) {
         console.error('登录失败:', error)
-        this.$message.error('登录失败，请检查网络连接')
+        const backendMessage = error?.response?.data?.message
+        this.$message.error(backendMessage || '登录失败，请检查网络连接')
       }
     },
 
@@ -136,8 +130,12 @@ export default {
 }
 
 .logo {
-  font-size: 70px;
-  margin-bottom: 15px;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 15px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.25);
 }
 
 .login-header h1 {

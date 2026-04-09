@@ -400,7 +400,7 @@ cat C:\Users\[操作系统用户名]\.ssh\id_ed25519.pub
 GitHub → Settings → SSH and GPG keys → New SSH key
 Title：随便写（如 TRAE-Win11）
 Key type：Authentication key
-Key：粘贴刚才复制的全部内容 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKUQzxX1c9pCJIT46zWIW1dEfhB6InKpkVxEVXPHm3cj 645057072@qq.com→ Add SSH key
+Key：粘贴刚才复制的全部内容（SSH 公钥内容）→ Add SSH key
 测试连接
 bash
 运行

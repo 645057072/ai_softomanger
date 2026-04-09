@@ -54,53 +54,43 @@ fi
 
 # 推送到远程仓库
 echo "正在推送到远程仓库..."
-git push origin main
+git push origin master
 echo -e "${GREEN}✓ 代码已推送到远程仓库${NC}"
 echo ""
 
 # 步骤2：连接到服务器并拉取代码
 echo -e "${YELLOW}[步骤 2/4] 连接到阿里云服务器并拉取代码...${NC}"
 
-# 使用 sshpass 自动输入密码（需要安装 sshpass）
-if command -v sshpass &> /dev/null; then
-    sshpass -p 'AAAAa@321' ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
-        echo "连接成功！"
-        cd /opt/ai_softomanger
-        
-        echo "正在拉取最新代码..."
-        git pull origin main
-        
-        if [ $? -eq 0 ]; then
-            echo -e "\033[0;32m✓ 代码拉取成功\033[0m"
-        else
-            echo -e "\033[0;31m✗ 代码拉取失败\033[0m"
-            exit 1
-        fi
-ENDSSH
-else
-    echo -e "${RED}警告: 未安装 sshpass，请手动输入密码${NC}"
-    ssh ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
-        echo "连接成功！"
-        cd /opt/ai_softomanger
-        
-        echo "正在拉取最新代码..."
-        git pull origin main
-        
-        if [ $? -eq 0 ]; then
-            echo -e "\033[0;32m✓ 代码拉取成功\033[0m"
-        else
-            echo -e "\033[0;31m✗ 代码拉取失败\033[0m"
-            exit 1
-        fi
-ENDSSH
+# 使用 SSH 私钥免密登录（推荐）
+# 说明：
+# - 请先在服务器上配置 authorized_keys
+# - 然后在本机通过 SSH_AGENT / ssh-add 或设置 SSH_KEY_PATH 指定私钥路径
+SSH_KEY_ARG=""
+if [ -n "${SSH_KEY_PATH}" ]; then
+  SSH_KEY_ARG="-i ${SSH_KEY_PATH}"
 fi
+
+ssh ${SSH_KEY_ARG} -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
+    echo "连接成功！"
+    cd /opt/ai_softomanger
+    
+    echo "正在拉取最新代码..."
+    git pull origin master
+    
+    if [ $? -eq 0 ]; then
+        echo -e "\033[0;32m✓ 代码拉取成功\033[0m"
+    else
+        echo -e "\033[0;31m✗ 代码拉取失败\033[0m"
+        exit 1
+    fi
+ENDSSH
 
 echo ""
 
 # 步骤3：重启 Docker 服务
 echo -e "${YELLOW}[步骤 3/4] 重启 Docker 服务...${NC}"
 
-sshpass -p 'AAAAa@321' ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
+ssh ${SSH_KEY_ARG} -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
     cd /opt/ai_softomanger
     
     echo "停止现有服务..."
@@ -125,7 +115,7 @@ echo -e "${YELLOW}[步骤 4/4] 验证部署状态...${NC}"
 sleep 5
 
 # 检查服务状态
-sshpass -p 'AAAAa@321' ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
+ssh ${SSH_KEY_ARG} -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
     cd /opt/ai_softomanger
     
     echo ""

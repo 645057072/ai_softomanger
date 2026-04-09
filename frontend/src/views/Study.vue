@@ -9,13 +9,13 @@
 <template>
   <div class="study-container">
     <div class="page-header">
-      <h1>📚 学习中心</h1>
+      <h1>学习中心</h1>
       <p>在线学习与练习</p>
     </div>
     
     <div class="study-content">
       <div class="placeholder-card">
-        <div class="placeholder-icon">📚</div>
+        <div class="placeholder-icon">学</div>
         <h2>学习中心</h2>
         <p>题库练习、错题本、学习记录等功能开发中...</p>
       </div>

@@ -9,13 +9,13 @@
 <template>
   <div class="paper-container">
     <div class="page-header">
-      <h1>📝 试卷中心</h1>
+      <h1>试卷中心</h1>
       <p>试卷管理与组卷</p>
     </div>
     
     <div class="paper-content">
       <div class="placeholder-card">
-        <div class="placeholder-icon">📝</div>
+        <div class="placeholder-icon">卷</div>
         <h2>试卷中心</h2>
         <p>试卷列表、智能组卷、试卷管理等功能开发中...</p>
       </div>

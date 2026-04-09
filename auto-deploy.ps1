@@ -16,7 +16,6 @@
 # 服务器配置
 $SERVER_IP = "47.93.44.247"
 $SERVER_USER = "root"
-$SERVER_PASSWORD = "AAAAa@321"
 $SERVER_PORT = "22"
 
 # 本地项目路径
@@ -56,21 +55,29 @@ function Main {
 
     # 推送到远程仓库
     Write-Host "正在推送到远程仓库..."
-    git push origin main
+    git push origin master
     Write-ColorOutput "✓ 代码已推送到远程仓库" "Green"
     Write-Host ""
 
     # 步骤2：连接到服务器并拉取代码
     Write-ColorOutput "[步骤 2/4] 连接到阿里云服务器并拉取代码..." "Yellow"
 
-    # 使用 plink（PuTTY）或 ssh 命令
-    $sshCommand = "ssh -o StrictHostKeyChecking=no $($SERVER_USER)@$($SERVER_IP)"
+    # 使用 SSH 私钥免密登录（推荐）
+    # 说明：
+    # - 请先在服务器上配置 authorized_keys
+    # - 然后在本机使用 ssh-agent/ssh-add，或设置环境变量 SSH_KEY_PATH 指定私钥路径
+    $sshKeyPath = $env:SSH_KEY_PATH
+    $sshKeyArg = ""
+    if ($sshKeyPath) {
+        $sshKeyArg = "-i `"$sshKeyPath`""
+    }
+    $sshCommand = "ssh $sshKeyArg -o StrictHostKeyChecking=no $($SERVER_USER)@$($SERVER_IP)"
     
     # 创建远程命令
     $remoteCommands = @"
 cd $($REMOTE_PATH)
 echo "正在拉取最新代码..."
-git pull origin main
+git pull origin master
 if [ `$? -eq 0 ]; then
     echo -e "\\033[0;32m✓ 代码拉取成功\\033[0m"
 else

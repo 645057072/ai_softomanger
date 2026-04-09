@@ -11,13 +11,13 @@
     <!-- 上部布局：占据屏幕 1/30 高度 -->
     <header class="top-header">
       <div class="header-content">
-        <div class="logo">📚 考试系统</div>
+        <div class="logo">考试系统</div>
         <div class="header-info">
           <!-- 消息预警图标 -->
           <div class="message-notification" @click="goToMessageCenter">
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
               <div class="message-icon">
-                <span>🔔</span>
+                <span>消息</span>
               </div>
             </el-badge>
           </div>
@@ -38,7 +38,7 @@
             :class="{ active: currentMenu === 'bi' }"
             @click="navigateTo('bi')"
           >
-            <span class="nav-icon">📊</span>
+            <span class="nav-icon">BI</span>
             <span class="nav-text">驾驶 BI</span>
           </div>
 
@@ -47,7 +47,7 @@
             :class="{ active: currentMenu === 'study' }"
             @click="navigateTo('study')"
           >
-            <span class="nav-icon">📚</span>
+            <span class="nav-icon">学</span>
             <span class="nav-text">学习中心</span>
           </div>
 
@@ -56,7 +56,7 @@
             :class="{ active: currentMenu === 'paper' }"
             @click="navigateTo('paper')"
           >
-            <span class="nav-icon">📝</span>
+            <span class="nav-icon">卷</span>
             <span class="nav-text">试卷中心</span>
           </div>
 
@@ -65,7 +65,7 @@
             :class="{ active: currentMenu === 'exam' }"
             @click="navigateTo('exam')"
           >
-            <span class="nav-icon">✏️</span>
+            <span class="nav-icon">考</span>
             <span class="nav-text">考试中心</span>
           </div>
 
@@ -76,7 +76,7 @@
               :class="{ active: currentMenu === 'system' }"
               @click="toggleSystemMenu"
             >
-              <span class="nav-icon">⚙️</span>
+              <span class="nav-icon">设</span>
               <span class="nav-text">系统设置</span>
               <span class="nav-arrow" :class="{ 'arrow-down': systemMenuExpanded }">▶</span>
             </div>
@@ -88,7 +88,7 @@
                 :class="{ active: currentSubmenu === 'organization' }"
                 @click="navigateToSubmenu('organization', '/admin/organization')"
               >
-                <span class="submenu-icon">🏢</span>
+                <span class="submenu-icon">机</span>
                 <span class="submenu-text">组织机构管理</span>
               </div>
               
@@ -97,7 +97,7 @@
                 :class="{ active: currentSubmenu === 'user' }"
                 @click="toggleUserSubmenu"
               >
-                <span class="submenu-icon">👥</span>
+                <span class="submenu-icon">用</span>
                 <span class="submenu-text">用户管理</span>
                 <span class="submenu-arrow" :class="{ 'arrow-down': userSubmenuExpanded }">▶</span>
               </div>
@@ -127,7 +127,7 @@
                 :class="{ active: currentSubmenu === 'role' }"
                 @click="navigateToSubmenu('role', '/admin/role')"
               >
-                <span class="submenu-icon">🎭</span>
+                <span class="submenu-icon">角</span>
                 <span class="submenu-text">角色管理</span>
               </div>
               
@@ -136,7 +136,7 @@
                 :class="{ active: currentSubmenu === 'authorization' }"
                 @click="navigateToSubmenu('authorization', '/admin/authorization')"
               >
-                <span class="submenu-icon">🔐</span>
+                <span class="submenu-icon">权</span>
                 <span class="submenu-text">功能授权</span>
               </div>
               
@@ -145,7 +145,7 @@
                 :class="{ active: currentSubmenu === 'data' }"
                 @click="navigateToSubmenu('data', '/admin/data')"
               >
-                <span class="submenu-icon">📊</span>
+                <span class="submenu-icon">数</span>
                 <span class="submenu-text">数据管理</span>
               </div>
             </div>

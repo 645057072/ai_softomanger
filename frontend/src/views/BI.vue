@@ -9,13 +9,13 @@
 <template>
   <div class="bi-container">
     <div class="page-header">
-      <h1>📊 驾驶 BI</h1>
+      <h1>驾驶 BI</h1>
       <p>数据统计与分析</p>
     </div>
     
     <div class="bi-content">
       <div class="placeholder-card">
-        <div class="placeholder-icon">📊</div>
+        <div class="placeholder-icon">BI</div>
         <h2>驾驶 BI 面板</h2>
         <p>数据统计、图表展示、考试分析等功能开发中...</p>
       </div>

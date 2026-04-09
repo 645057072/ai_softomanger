@@ -9,7 +9,7 @@
 <template>
   <div class="system-container">
     <div class="page-header">
-      <h1>⚙️ 系统设置</h1>
+      <h1>系统设置</h1>
       <p>系统配置与管理</p>
     </div>
     
@@ -18,7 +18,7 @@
         <!-- 一级菜单：组织机构管理 -->
         <div class="menu-level-1">
           <div class="menu-title-item" @click="toggleMenu('org')">
-            <span class="menu-icon">🏢</span>
+            <span class="menu-icon">机</span>
             <span class="menu-text">组织机构管理</span>
             <span class="arrow" :class="{ 'arrow-down': expandedMenus.includes('org') }">▼</span>
           </div>
@@ -33,7 +33,7 @@
         <!-- 一级菜单：用户管理 -->
         <div class="menu-level-1">
           <div class="menu-title-item" @click="toggleMenu('user')">
-            <span class="menu-icon">👥</span>
+            <span class="menu-icon">用</span>
             <span class="menu-text">用户管理</span>
             <span class="arrow" :class="{ 'arrow-down': expandedMenus.includes('user') }">▼</span>
           </div>
@@ -68,7 +68,7 @@
         <!-- 一级菜单：角色管理 -->
         <div class="menu-level-1">
           <div class="menu-title-item" @click="toggleMenu('role')">
-            <span class="menu-icon">🎭</span>
+            <span class="menu-icon">角</span>
             <span class="menu-text">角色管理</span>
             <span class="arrow" :class="{ 'arrow-down': expandedMenus.includes('role') }">▼</span>
           </div>
@@ -83,7 +83,7 @@
         <!-- 一级菜单：功能授权 -->
         <div class="menu-level-1">
           <div class="menu-title-item" @click="toggleMenu('auth')">
-            <span class="menu-icon">🔐</span>
+            <span class="menu-icon">权</span>
             <span class="menu-text">功能授权</span>
             <span class="arrow" :class="{ 'arrow-down': expandedMenus.includes('auth') }">▼</span>
           </div>
@@ -98,7 +98,7 @@
         <!-- 一级菜单：数据管理 -->
         <div class="menu-level-1">
           <div class="menu-title-item" @click="toggleMenu('data')">
-            <span class="menu-icon">📊</span>
+            <span class="menu-icon">数</span>
             <span class="menu-text">数据管理</span>
             <span class="arrow" :class="{ 'arrow-down': expandedMenus.includes('data') }">▼</span>
           </div>

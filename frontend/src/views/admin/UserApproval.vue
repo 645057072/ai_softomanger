@@ -9,7 +9,7 @@
             :class="{ 'active': currentCategory === 'unread' }"
             @click="switchCategory('unread')"
           >
-            <span class="category-icon">📬</span>
+            <span class="category-icon">未</span>
             <span class="category-name">未读消息</span>
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left: auto;" />
           </div>
@@ -18,7 +18,7 @@
             :class="{ 'active': currentCategory === 'read' }"
             @click="switchCategory('read')"
           >
-            <span class="category-icon">📭</span>
+            <span class="category-icon">已</span>
             <span class="category-name">已读消息</span>
           </div>
           <div 
@@ -26,7 +26,7 @@
             :class="{ 'active': currentCategory === 'deleted' }"
             @click="switchCategory('deleted')"
           >
-            <span class="category-icon">🗑️</span>
+            <span class="category-icon">删</span>
             <span class="category-name">已删除</span>
           </div>
         </div>
