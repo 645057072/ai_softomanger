@@ -2,7 +2,7 @@ name: Auto Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
 
 jobs:
   deploy:
@@ -17,6 +17,21 @@ jobs:
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add server host key
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H 47.93.44.247 >> ~/.ssh/known_hosts
+
+    - name: Sync project to server
+      run: |
+        rsync -az --delete \
+          --exclude ".git/" \
+          --exclude "frontend/node_modules/" \
+          --exclude "**/__pycache__/" \
+          --exclude "**/*.pyc" \
+          -e "ssh" \
+          ./ root@47.93.44.247:/opt/ai_softomanger/
     
     - name: Deploy to Server
       run: |
@@ -46,7 +61,6 @@ jobs:
           $COMPOSE version || true
 
           cd /opt/ai_softomanger
-          git pull origin master
           $COMPOSE down
           $COMPOSE up -d --build
           $COMPOSE restart nginx
