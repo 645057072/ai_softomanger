@@ -23,6 +23,28 @@ jobs:
         mkdir -p ~/.ssh
         ssh-keyscan -H 47.93.44.247 >> ~/.ssh/known_hosts
 
+    - name: Ensure rsync on server
+      run: |
+        ssh -o StrictHostKeyChecking=no root@47.93.44.247 << 'ENDSSH'
+          set -e
+          if command -v rsync >/dev/null 2>&1; then
+            echo "rsync already installed"
+            exit 0
+          fi
+
+          echo "Installing rsync..."
+          if command -v apt-get >/dev/null 2>&1; then
+            apt-get update && apt-get install -y rsync
+          elif command -v yum >/dev/null 2>&1; then
+            yum install -y rsync
+          elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y rsync
+          else
+            echo "ERROR: no supported package manager found to install rsync"
+            exit 127
+          fi
+        ENDSSH
+
     - name: Sync project to server
       run: |
         rsync -az --delete \
