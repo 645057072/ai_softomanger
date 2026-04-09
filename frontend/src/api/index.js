@@ -39,7 +39,7 @@ api.interceptors.response.use(
 // 认证相关
 export const authApi = {
   login: (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register'),
+  register: (data) => api.post('/auth/register', data),
   refresh: () => api.post('/auth/refresh'),
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/profile'),
