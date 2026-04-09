@@ -45,7 +45,39 @@ RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
 # 使用单进程模式初始化数据库\n\
-python -c "from exam_system.app import create_app; app = create_app()"\n\
+python << '\''PYEOF'\''\n\
+import os\n\
+import sys\n\
+from exam_system.app import create_app\n\
+from exam_system.extensions import db\n\
+from exam_system.models import User\n\
+from datetime import datetime\n\
+\n\
+app = create_app()\n\
+\n\
+with app.app_context():\n\
+    # 创建数据库表\n\
+    db.create_all()\n\
+    print("Database tables created")\n\
+    \n\
+    # 检查并创建管理员\n\
+    admin = User.query.filter_by(username="admin").first()\n\
+    if not admin:\n\
+        admin = User(\n\
+            username="admin",\n\
+            email="admin@example.com",\n\
+            real_name="系统管理员",\n\
+            role="admin",\n\
+            status=1\n\
+        )\n\
+        admin.set_password("admin123")\n\
+        admin.created_at = datetime.utcnow()\n\
+        db.session.add(admin)\n\
+        db.session.commit()\n\
+        print("Admin user created")\n\
+    else:\n\
+        print("Admin user exists")\n\
+PYEOF\n\
 \n\
 # 启动 gunicorn\n\
 exec gunicorn "exam_system.app:app" -w 4 -b "0.0.0.0:5001" --timeout 300' > /app/start.sh && chmod +x /app/start.sh
