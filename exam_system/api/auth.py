@@ -6,7 +6,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 
-from exam_system.extensions import db, redis_client
+from exam_system.extensions import db
+from exam_system import extensions
 from exam_system.models import User, SystemLog
 from exam_system.utils.decorators import validate_json
 from exam_system.utils.validators import user_login_schema, user_register_schema
@@ -20,6 +21,7 @@ def check_login_attempts(username, ip_address):
     attempts_key = f'login:attempts:{username}:{ip_address}'
     lockout_key = f'login:lockout:{username}:{ip_address}'
     
+    redis_client = extensions.redis_client
     # 检查是否处于冷却期
     if redis_client.exists(lockout_key):
         remaining_time = redis_client.ttl(lockout_key)
@@ -38,6 +40,7 @@ def check_login_attempts(username, ip_address):
 def increment_login_attempts(username, ip_address):
     """增加登录失败次数"""
     attempts_key = f'login:attempts:{username}:{ip_address}'
+    redis_client = extensions.redis_client
     attempts = redis_client.get(attempts_key)
     if attempts:
         redis_client.incr(attempts_key)
@@ -49,6 +52,7 @@ def reset_login_attempts(username, ip_address):
     """重置登录失败次数"""
     attempts_key = f'login:attempts:{username}:{ip_address}'
     lockout_key = f'login:lockout:{username}:{ip_address}'
+    redis_client = extensions.redis_client
     redis_client.delete(attempts_key)
     redis_client.delete(lockout_key)
 
