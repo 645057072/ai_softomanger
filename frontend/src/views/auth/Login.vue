@@ -69,22 +69,40 @@ export default {
     }
   },
   methods: {
-    handleLogin() {
+    async handleLogin() {
       if (!this.username || !this.password) {
         this.$message.error('请输入用户名和密码')
         return
       }
 
-      const userStore = useUserStore()
-      
-      // 模拟登录成功
-      userStore.login('mock-token', {
-        username: this.username,
-        role: 'user'
-      })
-      
-      this.$message.success('登录成功')
-      this.$router.push('/home')
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: this.username,
+            password: this.password
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.code === 200) {
+          const userStore = useUserStore()
+          // 存储后端返回的 access_token
+          userStore.login(result.data.access_token, result.data.user)
+          
+          this.$message.success('登录成功')
+          this.$router.push('/home')
+        } else {
+          this.$message.error(result.message)
+        }
+      } catch (error) {
+        console.error('登录失败:', error)
+        this.$message.error('登录失败，请检查网络连接')
+      }
     },
 
     handleRegister() {

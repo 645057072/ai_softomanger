@@ -1,1 +1,0 @@
-import{_ as t,o,c as s,a,f as c,i as n}from"./index-CUGGFF1W.js";const r={name:"SystemLayout"},_={class:"system-layout"},d={class:"system-content"};function i(m,p,u,l,f,y){const e=n("router-view");return o(),s("div",_,[a("div",d,[c(e)])])}const $=t(r,[["render",i],["__scopeId","data-v-e42cbcd3"]]);export{$ as default};
