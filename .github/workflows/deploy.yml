@@ -82,7 +82,16 @@ jobs:
           echo "Using: $COMPOSE"
           $COMPOSE version || true
 
+          git config --global --add safe.directory /opt/ai_softomanger
           cd /opt/ai_softomanger
+          # 服务器目录可能存在手动改动或 CRLF 差异，统一以远端为准，避免 pull 失败导致未更新代码
+          if command -v git >/dev/null 2>&1; then
+            git fetch origin master || true
+            git reset --hard origin/master || true
+            git clean -fd || true
+            git pull origin master || true
+          fi
+
           $COMPOSE down
           $COMPOSE up -d --build
           $COMPOSE restart nginx
