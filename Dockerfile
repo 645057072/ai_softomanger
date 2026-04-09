@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libffi-dev \
     python3-dev \
+    libmagickwand-dev \
+    imagemagick \
     && rm -rf /var/lib/apt/lists/*
 
 # 2026-04-08 14:30:00: 安装 setuptools 和 pip（使用清华源加速）

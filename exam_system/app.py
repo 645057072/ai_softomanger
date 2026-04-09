@@ -52,11 +52,18 @@ def create_app(config_name='default'):
     register_jwt_callbacks(app)
     
     # 2026-04-08 14:30:00: 创建数据库表（必须在 init_admin_user 之前执行）
-    # 2026-04-08 23:15:00: 确保每次启动时都创建数据库表
+    # 2026-04-09: 使用 app_context 确保数据库表正确创建
     with app.app_context():
-        db.create_all()
-        print("Database tables created successfully")
-        init_admin_user()
+        try:
+            db.create_all()
+            app.logger.info("Database tables created successfully")
+        except Exception as e:
+            app.logger.error(f"Failed to create database tables: {str(e)}")
+        
+        try:
+            init_admin_user()
+        except Exception as e:
+            app.logger.error(f"Failed to init admin user: {str(e)}")
     
     return app
 
