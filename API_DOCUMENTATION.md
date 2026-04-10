@@ -618,15 +618,15 @@ Authorization: Bearer <access_token>
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/data-backup` | 备份文件列表（`uploads/backups` 下 `.db`） |
-| POST | `/data-backup` | 执行一次 SQLite 库文件备份 |
-| DELETE | `/data-backup?filename=xxx.db` | 删除指定备份文件 |
+| GET | `/data-backup` | 备份文件列表（`uploads/backups` 下 `.sql`） |
+| POST | `/data-backup` | 执行一次 MySQL 逻辑备份（`mysqldump` 生成 `.sql`） |
+| DELETE | `/data-backup?filename=xxx.sql` | 删除指定备份文件 |
 
 ### 10.5 数据恢复
 
 **接口地址：** `POST /data-restore`  
-**请求体 JSON：** `{ "filename": "exam_backup_xxx.db" }`  
-**说明**：用指定备份覆盖当前 SQLite 数据库文件；部署环境下需重启后端进程。
+**请求体 JSON：** `{ "filename": "exam_backup_xxx.sql" }`  
+**说明**：将指定 `.sql` 导入当前 MySQL 库；导入后建议重启后端进程。
 
 ---
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { normalizeAccessToken } from '../utils/accessToken'
 
 // 用户状态管理
 export const useUserStore = defineStore('user', () => {
@@ -11,9 +12,10 @@ export const useUserStore = defineStore('user', () => {
   const isTeacher = computed(() => ['admin', 'teacher'].includes(userInfo.value?.role))
   
   function login(newToken, user) {
-    token.value = newToken
+    const t = normalizeAccessToken(newToken)
+    token.value = t
     userInfo.value = user
-    localStorage.setItem('token', newToken)
+    localStorage.setItem('token', t)
     localStorage.setItem('userInfo', JSON.stringify(user))
   }
   

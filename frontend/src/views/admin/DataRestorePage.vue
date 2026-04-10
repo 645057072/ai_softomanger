@@ -5,7 +5,7 @@
         <span>数据恢复</span>
       </template>
       <el-alert
-        title="将从备份文件覆盖当前 SQLite 数据库文件，操作后需重启后端服务。仅限管理员。"
+        title="将从 .sql 备份导入当前 MySQL 数据库，操作后建议重启后端服务。仅限管理员。"
         type="warning"
         :closable="false"
         show-icon

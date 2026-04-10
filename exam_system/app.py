@@ -10,7 +10,7 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_migrate import Migrate
 
 from exam_system.config import config
@@ -19,8 +19,12 @@ from exam_system.extensions import db, jwt, cors, socketio, init_redis
 from exam_system.models import User, ExamType, ExamSubject, Question, Paper, PaperQuestion, Exam, ExamAnswer, ExamLog, SystemLog, SystemConfig, Organization, Role, Menu, RoleMenu, OnlineUser, BizOperationLog
 
 
-def create_app(config_name='default'):
-    """创建 Flask 应用"""
+def create_app(config_name=None):
+    """创建 Flask 应用。未指定 config_name 时读取环境变量 FLASK_CONFIG，默认 development。"""
+    if config_name is None:
+        config_name = os.environ.get('FLASK_CONFIG') or 'development'
+    if config_name not in config:
+        config_name = 'development'
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
@@ -44,6 +48,9 @@ def create_app(config_name='default'):
     
     # 注册蓝图
     register_blueprints(app)
+
+    # 经 HTTPS/负载均衡转发时 Authorization 偶发未传到后端，允许用 X-Access-Token 传递同一 JWT
+    register_request_hooks(app)
     
     # 注册错误处理
     register_error_handlers(app)
@@ -121,6 +128,27 @@ def register_blueprints(app):
     app.register_blueprint(biz_operation_logs_bp, url_prefix='/api/biz-operation-logs')
     app.register_blueprint(data_backup_bp, url_prefix='/api/data-backup')
     app.register_blueprint(data_restore_bp, url_prefix='/api/data-restore')
+
+
+def register_request_hooks(app):
+    """API 请求钩子：从 X-Access-Token 补全 Authorization，供 flask-jwt-extended 校验。"""
+
+    @app.before_request
+    def _inject_authorization_from_x_access_token():
+        if not request.path.startswith('/api/'):
+            return
+        if request.headers.get('Authorization'):
+            return
+        raw = request.headers.get('X-Access-Token')
+        if not raw:
+            return
+        token = str(raw).strip()
+        if not token:
+            return
+        if token.lower().startswith('bearer '):
+            request.environ['HTTP_AUTHORIZATION'] = token
+        else:
+            request.environ['HTTP_AUTHORIZATION'] = f'Bearer {token}'
 
 
 def register_error_handlers(app):

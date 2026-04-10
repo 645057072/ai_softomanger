@@ -49,7 +49,7 @@
 
         <div class="form-buttons">
           <button class="btn-register" @click="handleRegister">注册</button>
-          <button class="btn-login" @click="handleLogin">登录</button>
+          <button class="btn-login" :disabled="loginSubmitting" @click="handleLogin">{{ loginSubmitting ? '登录中...' : '登录' }}</button>
         </div>
       </div>
     </div>
@@ -59,6 +59,7 @@
 <script>
 import { useUserStore } from '../../store'
 import { authApi } from '../../api'
+import { normalizeAccessToken } from '../../utils/accessToken'
 
 export default {
   name: 'Login',
@@ -66,7 +67,8 @@ export default {
     return {
       username: '',
       password: '',
-      loginDate: new Date().toISOString().split('T')[0]
+      loginDate: new Date().toISOString().split('T')[0],
+      loginSubmitting: false
     }
   },
   methods: {
@@ -75,6 +77,8 @@ export default {
         this.$message.error('请输入用户名和密码')
         return
       }
+      if (this.loginSubmitting) return
+      this.loginSubmitting = true
 
       try {
         const result = await authApi.login({
@@ -83,12 +87,32 @@ export default {
         })
 
         if (result.code === 200) {
+          const rawToken = result.data?.access_token
+          if (!rawToken || typeof rawToken !== 'string') {
+            this.$message.error('登录响应缺少访问令牌，请重试或联系管理员')
+            return
+          }
           const userStore = useUserStore()
-          userStore.login(result.data.access_token, result.data.user)
-          // 不在此写入 profile_synced_token，交由路由守卫在首跳前统一 getProfile，避免子页面请求早于鉴权就绪
-
-          this.$message.success('登录成功')
-          this.$router.push('/home')
+          userStore.login(rawToken, result.data.user)
+          // 显式传入 access_token，避免拦截器与 localStorage 写入的竞态导致未带 Authorization
+          try {
+            const pr = await authApi.getProfile(rawToken)
+            if (pr.code === 200 && pr.data) {
+              userStore.login(rawToken, pr.data)
+              if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('profile_synced_token', normalizeAccessToken(rawToken))
+              }
+              this.$message.success('登录成功')
+              await this.$router.push('/home')
+            } else {
+              userStore.logout()
+              this.$message.error(pr.message || '会话校验失败，请重新登录')
+            }
+          } catch (e) {
+            userStore.logout()
+            const m = e?.response?.data?.message
+            this.$message.error(m || '会话校验失败，请重新登录')
+          }
         } else {
           this.$message.error(result.message)
           // 用户名保留，清空密码便于重新输入
@@ -100,6 +124,8 @@ export default {
         this.$message.error(backendMessage || '登录失败，请检查网络连接')
         // 用户名保留，清空密码便于重新输入
         this.password = ''
+      } finally {
+        this.loginSubmitting = false
       }
     },
 

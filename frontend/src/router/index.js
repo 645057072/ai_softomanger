@@ -10,6 +10,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../store'
 import { authApi } from '../api'
+import { normalizeAccessToken } from '../utils/accessToken'
 
 const routes = [
   {
@@ -160,7 +161,7 @@ const router = createRouter({
 // 路由守卫：校验 Token 与用户信息；系统管理类路由仅管理员可进
 //注意：Vue Router 4 子路由默认不继承父级 meta，必须用 matched 聚合判断是否需要登录
 router.beforeEach(async (to, from, next) => {
-  const token = localStorage.getItem('token')
+  const token = normalizeAccessToken(localStorage.getItem('token'))
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
 
   if (requiresAuth) {
@@ -169,16 +170,15 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // 从登录页进入任意需登录页时必须先拉取 profile，确保 JWT 有效且子组件请求晚于鉴权完成，避免 401 触发全局退出
-    const fromLogin = from.name === 'Login'
+    // Token 与 profile_synced_token 不一致时需拉取 profile；登录页已先 getProfile 并写入 synced，此处不再重复请求
     const synced = typeof sessionStorage !== 'undefined'
       ? sessionStorage.getItem('profile_synced_token')
       : null
-    const needProfileSync = !synced || token !== synced || fromLogin
+    const needProfileSync = !synced || token !== synced
 
     if (needProfileSync) {
       try {
-        const res = await authApi.getProfile()
+        const res = await authApi.getProfile(token)
         if (res.code === 200 && res.data) {
           const userStore = useUserStore()
           userStore.login(token, res.data)

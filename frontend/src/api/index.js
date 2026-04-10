@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { unref } from 'vue'
 import { useUserStore } from '../store'
+import { normalizeAccessToken } from '../utils/accessToken'
 
 // 创建axios实例
 const api = axios.create({
@@ -8,34 +9,62 @@ const api = axios.create({
   timeout: 10000
 })
 
+export { normalizeAccessToken } from '../utils/accessToken'
+
 /**
- * 从 Pinia 与 localStorage 统一取 Token，避免仅读 localStorage 与 store 不同步导致未带鉴权头。
- * 若曾误存带 Bearer 前缀的字符串，去掉重复前缀。
+ * 从 localStorage 与 Pinia 统一取 Token。
+ * 必须优先 localStorage：登录成功后路由守卫会立刻请求 profile，此时以持久化为准最可靠。
  */
 function getAccessTokenForRequest() {
-  let t = ''
-  try {
-    const s = useUserStore()
-    t = unref(s.token) || ''
-  } catch (_) {
-    t = ''
-  }
+  let t = localStorage.getItem('token') || ''
   if (!t) {
-    t = localStorage.getItem('token') || ''
+    try {
+      const s = useUserStore()
+      t = unref(s.token) || ''
+    } catch (_) {
+      t = ''
+    }
   }
-  t = String(t).trim()
-  if (/^bearer\s+/i.test(t)) {
-    t = t.replace(/^bearer\s+/i, '').trim()
-  }
-  return t
+  return normalizeAccessToken(t)
 }
 
-// 请求拦截器
+/** 读取请求配置里的 Authorization（兼容 axios 1.x 的 AxiosHeaders） */
+function readAuthorizationFromConfig(config) {
+  const h = config.headers
+  if (!h) return ''
+  if (typeof h.get === 'function') {
+    const v = h.get('Authorization') || h.get('authorization')
+    return v != null ? String(v) : ''
+  }
+  const a = h.Authorization || h.authorization
+  return a != null ? String(a) : ''
+}
+
+/** 请求里是否已带 Authorization（避免覆盖显式传入的 Token） */
+function configAlreadyHasAuthorization(config) {
+  const s = readAuthorizationFromConfig(config).trim()
+  return !!s
+}
+
+// 请求拦截器（同时带 X-Access-Token：部分反向代理/SLB 会丢弃 Authorization，后端可从备用头取 JWT）
 api.interceptors.request.use(
   config => {
-    const token = getAccessTokenForRequest()
+    let token = getAccessTokenForRequest()
+    if (!configAlreadyHasAuthorization(config)) {
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`
+      }
+    } else {
+      const authStr = readAuthorizationFromConfig(config)
+      if (authStr.trim()) {
+        token = normalizeAccessToken(authStr)
+      }
+    }
+    if (!token) {
+      token = getAccessTokenForRequest()
+    }
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
+      config.headers['X-Access-Token'] = token
     }
     return config
   },
@@ -83,7 +112,25 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
   refresh: () => api.post('/auth/refresh'),
   logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/profile', { skipAuthRedirect: true }),
+  /**
+   * @param {string} [accessToken] 登录接口返回的 access_token；务必传入可避免与拦截器、localStorage 时序竞态
+   */
+  getProfile: (accessToken) => {
+    const t = normalizeAccessToken(
+      accessToken != null && accessToken !== ''
+        ? accessToken
+        : getAccessTokenForRequest()
+    )
+    const cfg = { skipAuthRedirect: true }
+    if (t) {
+      // 与拦截器一致：双头传递，避免链路上丢弃 Authorization 时 profile 401
+      cfg.headers = {
+        Authorization: `Bearer ${t}`,
+        'X-Access-Token': t
+      }
+    }
+    return api.get('/auth/profile', cfg)
+  },
   changePassword: (data) => api.post('/auth/change-password', data)
 }
 

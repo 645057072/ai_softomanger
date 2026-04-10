@@ -1,42 +1,71 @@
-# 考试系统 Docker Compose 配置文件
-# 修改历史：
-# - 2026-04-08 14:30:00: 添加 exam_system 目录挂载，确保数据库文件持久化
-# - 2026-04-08 14:30:00: 添加网络配置 exam-network，确保服务间通信
-# - 2026-04-08 14:30:00: 使用官方 Docker Hub 镜像（需配置 Docker 镜像加速器）
-# - 2026-04-08 14:30:00: 前端使用 npm 淘宝镜像加速构建
-# - 2026-04-08 14:30:00: 兼容 Alibaba Cloud Linux 3.2104 LTS Docker 部署
-# - 2026-04-08 15:00:00: 修改网络模式为 host，解决容器间通信问题
+# 考试系统 Docker Compose（MySQL 8.0 + Redis + 后端 + 前端构建 + Nginx）
+#
+# 重要：
+# - backend 的 build.context 必须为项目根目录「.」。若写成 ./exam_system，镜像内缺少依赖与 Dockerfile，会导致后端反复重启。
+# - 生产环境请复制 .env.example 为 .env 并修改默认密码；未提供 .env 时使用下列默认值（仅便于首次拉起）。
+# - 数据库服务名为 db，与 MYSQL_HOST=db 一致。
 
 services:
+  db:
+    image: mysql:8.0
+    container_name: exam-system-db
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-exam_system}"
+      MYSQL_USER: "${MYSQL_USER:-exam_user}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-exam_pass}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-exam_root_pass}"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - exam-network
+
   backend:
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: exam-system-backend
-    # 2026-04-08 15:00:00: 移除端口映射，使用容器网络内部通信
     expose:
       - "5001"
     volumes:
       - ./uploads:/app/uploads
-      # 2026-04-08 14:30:00: 挂载 exam_system 目录，确保数据库文件持久化
       - ./exam_system:/app/exam_system
     environment:
-      - SECRET_KEY=your-secret-key-here
-      - JWT_SECRET_KEY=ai-softomanger-jwt-secret-2026-fixed
-      - SQLALCHEMY_DATABASE_URI=sqlite:////app/exam_system/exam_system.db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      SECRET_KEY: "${SECRET_KEY:-your-secret-key-here}"
+      # 二选一传入容器；均未设置时由 exam_system/config.py 使用内置默认值
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY:-}"
+      JWT_SECRET: "${JWT_SECRET:-}"
+      FLASK_CONFIG: production
+      MYSQL_HOST: db
+      MYSQL_PORT: "3306"
+      MYSQL_USER: "${MYSQL_USER:-exam_user}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-exam_pass}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-exam_system}"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
     depends_on:
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
-    # 2026-04-08 14:30:00: 添加网络配置
     networks:
       - exam-network
 
   redis:
-    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: redis:6-alpine
     container_name: exam-system-redis
-    # 2026-04-08 15:00:00: 移除端口映射，仅内部访问
     expose:
       - "6379"
     restart: unless-stopped
@@ -44,27 +73,22 @@ services:
       - exam-network
 
   frontend:
-    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: node:18-alpine
     container_name: exam-system-frontend
     working_dir: /app/frontend
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/dist:/app/frontend/dist
-    # 2026-04-08 14:30:00: 使用 npm 淘宝镜像加速依赖安装
     command: sh -c "cd /app/frontend && npm install --registry=https://registry.npmmirror.com && npm run build && sleep infinity"
     restart: unless-stopped
     networks:
       - exam-network
 
   nginx:
-    # 2026-04-08 14:30:00: 使用官方镜像（需在阿里云服务器配置 Docker 镜像加速器）
     image: nginx:alpine
     container_name: exam-system-nginx
-    # 2026-04-08 15:00:00: 只映射 80 端口到宿主机
     ports:
       - "80:80"
-    # 注意：容器内 nginx worker 非 root，宿主 frontend/dist 需可读可进入目录(a+rX)，否则静态资源 403
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./frontend/dist:/usr/share/nginx/html:ro
@@ -75,7 +99,9 @@ services:
     networks:
       - exam-network
 
-# 2026-04-08 14:30:00: 定义网络
 networks:
   exam-network:
     driver: bridge
+
+volumes:
+  mysql_data:

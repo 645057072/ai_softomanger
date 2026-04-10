@@ -2,8 +2,8 @@
 
 ## 数据库概述
 
-- **数据库类型**: SQLite
-- **数据库文件**: `/app/exam_system/exam_system.db`
+- **数据库类型**: MySQL 8.0（Docker 服务名 `db`，数据卷 `mysql_data`）
+- **连接**: 容器内 `MYSQL_HOST=db`，或由 `DATABASE_URL=mysql+pymysql://...@db:3306/exam_system?charset=utf8mb4`
 - **创建时间**: 2026-04-08
 - **最后更新**: 2026-04-10
 
@@ -479,10 +479,7 @@ exams ─┬─< exam_logs
 
 ### 3. 数据库备份
 
-建议定期备份数据库文件：
-```bash
-cp /app/exam_system/exam_system.db /backup/exam_system_$(date +%Y%m%d).db
-```
+建议定期备份：使用管理端「数据备份」生成 `.sql`，或宿主机执行 `mysqldump` 导出到安全位置。
 
 ---
 
