@@ -75,6 +75,8 @@ services:
   frontend:
     build:
       context: ./frontend
+      volumes:
+      - frontend_dist:/usr/share/nginx/html
       dockerfile: Dockerfile
     container_name: exam-system-frontend
     ports:
@@ -84,6 +86,16 @@ services:
     restart: unless-stopped
     networks:
       - exam-network
+  
+nginx:
+    image: nginx:alpine
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro  # 读取同一个卷
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
 
 networks:
   exam-network:
@@ -91,3 +103,5 @@ networks:
 
 volumes:
   mysql_data:
+  frontend_dist:
+
