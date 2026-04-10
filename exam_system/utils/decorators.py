@@ -4,17 +4,16 @@
 """
 from functools import wraps
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity
-
 from exam_system.models import User
+from exam_system.utils.jwt_helper import resolve_user_id
 
 
 def admin_required(fn):
     """管理员权限装饰器"""
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user_id = resolve_user_id()
+        user = User.query.get(user_id) if user_id is not None else None
         
         if not user or user.role != 'admin':
             return jsonify({'code': 403, 'message': '需要管理员权限', 'data': None}), 403
@@ -27,8 +26,8 @@ def teacher_required(fn):
     """教师权限装饰器"""
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user_id = resolve_user_id()
+        user = User.query.get(user_id) if user_id is not None else None
         
         if not user or user.role not in ['admin', 'teacher']:
             return jsonify({'code': 403, 'message': '需要教师权限', 'data': None}), 403
@@ -41,8 +40,8 @@ def student_required(fn):
     """学生权限装饰器"""
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user_id = resolve_user_id()
+        user = User.query.get(user_id) if user_id is not None else None
         
         if not user:
             return jsonify({'code': 401, 'message': '请先登录', 'data': None}), 401

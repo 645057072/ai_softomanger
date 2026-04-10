@@ -7,6 +7,9 @@
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '../store'
+import { authApi } from '../api'
 
 const routes = [
   {
@@ -74,7 +77,8 @@ const routes = [
     name: 'System',
     component: () => import('../views/SystemLayout.vue'),
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      requiresAdmin: true
     },
     children: [
       {
@@ -84,32 +88,65 @@ const routes = [
       {
         path: '/admin/organization',
         name: 'Organization',
+        meta: { requiresAuth: true, requiresAdmin: true },
         component: () => import('../views/admin/Organization.vue')
       },
       {
         path: '/admin/user-approval',
         name: 'UserApproval',
+        meta: { requiresAuth: true, requiresAdmin: true },
         component: () => import('../views/admin/UserApproval.vue')
       },
       {
         path: '/admin/user-management',
         name: 'UserManagement',
+        meta: { requiresAuth: true, requiresAdmin: true },
         component: () => import('../views/admin/UserManagement.vue')
       },
       {
         path: '/admin/role',
         name: 'Role',
+        meta: { requiresAuth: true, requiresAdmin: true },
         component: () => import('../views/admin/Role.vue')
       },
       {
         path: '/admin/authorization',
         name: 'Authorization',
+        meta: { requiresAuth: true, requiresAdmin: true },
         component: () => import('../views/admin/Authorization.vue')
       },
       {
         path: '/admin/data',
         name: 'Data',
-        component: () => import('../views/admin/Data.vue')
+        meta: { requiresAuth: true, requiresAdmin: true },
+        component: () => import('../views/admin/DataLayout.vue'),
+        redirect: '/admin/data/online-users',
+        children: [
+          {
+            path: 'online-users',
+            name: 'DataOnlineUsers',
+            meta: { requiresAuth: true, requiresAdmin: true },
+            component: () => import('../views/admin/DataOnlineUsers.vue')
+          },
+          {
+            path: 'logs',
+            name: 'DataLogs',
+            meta: { requiresAuth: true, requiresAdmin: true },
+            component: () => import('../views/admin/DataLogs.vue')
+          },
+          {
+            path: 'backup',
+            name: 'DataBackup',
+            meta: { requiresAuth: true, requiresAdmin: true },
+            component: () => import('../views/admin/DataBackupPage.vue')
+          },
+          {
+            path: 'restore',
+            name: 'DataRestore',
+            meta: { requiresAuth: true, requiresAdmin: true },
+            component: () => import('../views/admin/DataRestorePage.vue')
+          }
+        ]
       }
     ]
   }
@@ -120,21 +157,69 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
+// 路由守卫：校验 Token 与用户信息；系统管理类路由仅管理员可进
+//注意：Vue Router 4 子路由默认不继承父级 meta，必须用 matched 聚合判断是否需要登录
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token')
-  
-  if (to.meta.requiresAuth) {
-    if (token) {
-      next()
-    } else {
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
+
+  if (requiresAuth) {
+    if (!token) {
       next({ name: 'Login' })
+      return
     }
-  } else if (to.meta.layout === 'auth' && token) {
-    next({ name: 'Home' })
-  } else {
+
+    // 从登录页进入任意需登录页时必须先拉取 profile，确保 JWT 有效且子组件请求晚于鉴权完成，避免 401 触发全局退出
+    const fromLogin = from.name === 'Login'
+    const synced = typeof sessionStorage !== 'undefined'
+      ? sessionStorage.getItem('profile_synced_token')
+      : null
+    const needProfileSync = !synced || token !== synced || fromLogin
+
+    if (needProfileSync) {
+      try {
+        const res = await authApi.getProfile()
+        if (res.code === 200 && res.data) {
+          const userStore = useUserStore()
+          userStore.login(token, res.data)
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('profile_synced_token', token)
+          }
+        } else {
+          const userStore = useUserStore()
+          userStore.logout()
+          next({ name: 'Login' })
+          return
+        }
+      } catch (e) {
+        const userStore = useUserStore()
+        userStore.logout()
+        next({ name: 'Login' })
+        return
+      }
+    }
+
+    const needsAdmin = to.matched.some((r) => r.meta.requiresAdmin)
+    if (needsAdmin) {
+      const userStore = useUserStore()
+      if (userStore.userInfo?.role !== 'admin') {
+        ElMessage.warning('需要管理员权限')
+        next({ path: '/home' })
+        return
+      }
+    }
+
     next()
+    return
   }
+
+  const isAuthLayoutRoute = to.matched.some((r) => r.meta.layout === 'auth')
+  if (isAuthLayoutRoute && token) {
+    next({ name: 'Home' })
+    return
+  }
+
+  next()
 })
 
 export default router

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72">
+  <!-- 已读：打开的信封 + 对勾，偏 emoji 扁平风 -->
+  <defs>
+    <linearGradient id="envR" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8ce99a"/>
+      <stop offset="100%" style="stop-color:#51cf66"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="22" width="48" height="34" rx="8" fill="url(#envR)" stroke="#2f9e44" stroke-width="2"/>
+  <path fill="#b2f2bb" stroke="#2f9e44" stroke-width="1.5" d="M12 28 L36 45 L60 28"/>
+  <circle cx="48" cy="20" r="14" fill="#ffd43b" stroke="#fab005" stroke-width="2"/>
+  <path fill="none" stroke="#2b8a3e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M42 20 L46 24 L54 14"/>
+</svg>

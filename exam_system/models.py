@@ -22,6 +22,8 @@ class User(db.Model):
     id_card = db.Column(db.String(18), nullable=True)  # 身份证号码
     role = db.Column(db.String(20), nullable=False, default='student')  # student, teacher, admin
     status = db.Column(db.Integer, default=0)  # 0:待审核 1:正常 2:禁用
+    # 管理员在「用户注册审批」中打开过待审核记录的时间；未打开为未读，已打开仍为待审核则为已读
+    registration_read_at = db.Column(db.DateTime, nullable=True)
     avatar = db.Column(db.String(255), nullable=True)
     last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -43,6 +45,7 @@ class User(db.Model):
             'id_card': self.id_card,
             'role': self.role,
             'status': self.status,
+            'registration_read_at': self.registration_read_at.isoformat() if self.registration_read_at else None,
             'avatar': self.avatar,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
@@ -306,6 +309,58 @@ class SystemConfig(db.Model):
     config_value = db.Column(db.Text, nullable=True)
     description = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class OnlineUser(db.Model):
+    """在线用户：登录时写入/更新，登出时删除（每用户一条当前在线记录）"""
+    __tablename__ = 'online_users'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(50), nullable=False)
+    ip_address = db.Column(db.String(50), nullable=True)
+    login_time = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='在线')
+
+    user = db.relationship('User', backref=db.backref('online_record', uselist=False))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.username,
+            'ip_address': self.ip_address,
+            'login_time': self.login_time.isoformat() if self.login_time else None,
+            'status': self.status,
+        }
+
+
+class BizOperationLog(db.Model):
+    """业务操作日志（数据管理-日志），操作状态：提交、审核、失败"""
+    __tablename__ = 'biz_operation_logs'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    username = db.Column(db.String(50), nullable=False, default='')
+    ip_address = db.Column(db.String(50), nullable=True)
+    description = db.Column(db.String(100), nullable=False, default='')
+    op_status = db.Column(db.String(20), nullable=False, default='提交')
+    failure_detail = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='biz_operation_logs')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.username,
+            'ip_address': self.ip_address,
+            'description': self.description,
+            'op_status': self.op_status,
+            'failure_detail': self.failure_detail,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
 
 
 class Organization(db.Model):

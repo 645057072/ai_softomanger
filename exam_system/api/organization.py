@@ -3,7 +3,9 @@
 考试系统 - 组织机构管理 API
 """
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
+
+from exam_system.utils.jwt_helper import resolve_user_id
 from datetime import datetime
 
 from exam_system.extensions import db
@@ -27,11 +29,11 @@ _organization_schema = {
 @jwt_required()
 def get_organizations():
     """获取组织机构列表"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     # 检查是否为管理员
     from exam_system.models import User
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -60,10 +62,10 @@ def get_organizations():
 @jwt_required()
 def get_organization(org_id):
     """获取组织机构详情"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     from exam_system.models import User
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -83,10 +85,10 @@ def get_organization(org_id):
 @validate_json(_organization_schema)
 def create_organization():
     """创建组织机构"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     from exam_system.models import User
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -129,10 +131,10 @@ def create_organization():
 @validate_json({k: {**v, 'required': False} for k, v in _organization_schema.items()})
 def update_organization(org_id):
     """更新组织机构"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     from exam_system.models import User
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -184,10 +186,10 @@ def update_organization(org_id):
 @jwt_required()
 def delete_organization(org_id):
     """删除组织机构"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     from exam_system.models import User
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     

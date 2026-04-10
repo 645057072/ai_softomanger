@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72">
+  <!-- 已删除：垃圾桶 emoji 风格 -->
+  <defs>
+    <linearGradient id="bin" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffe066"/>
+      <stop offset="100%" style="stop-color:#fcc419"/>
+    </linearGradient>
+  </defs>
+  <rect x="22" y="26" width="28" height="32" rx="4" fill="url(#bin)" stroke="#e67700" stroke-width="2"/>
+  <path fill="#ff922b" stroke="#e67700" stroke-width="2" d="M18 26h36v6H18z"/>
+  <path fill="none" stroke="#c92a2a" stroke-width="3" stroke-linecap="round" d="M30 34v18M42 34v18"/>
+  <rect x="30" y="18" width="12" height="8" rx="2" fill="#ff922b" stroke="#e67700" stroke-width="1.5"/>
+  <path fill="none" stroke="#c92a2a" stroke-width="2.5" stroke-linecap="round" d="M26 44 L46 58 M46 44 L26 58"/>
+</svg>

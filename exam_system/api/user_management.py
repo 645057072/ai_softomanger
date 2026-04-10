@@ -3,7 +3,10 @@
 考试系统 - 用户管理 API
 """
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
+
+from exam_system.utils.jwt_helper import resolve_user_id
+from exam_system.utils.biz_log import write_biz_log
 from datetime import datetime
 
 from exam_system.extensions import db
@@ -16,23 +19,63 @@ user_management_bp = Blueprint('user_management', __name__)
 @user_management_bp.route('/pending', methods=['GET'])
 @jwt_required()
 def get_pending_users():
-    """获取待审核用户列表"""
-    user_id = get_jwt_identity()
-    
+    """获取待审核用户列表（status=0）。inbox=unread：管理员未打开过的；inbox=read：已打开但仍未审核的"""
+    user_id = resolve_user_id()
+
     # 检查是否为管理员
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    
-    pagination = User.query.filter_by(status=0).order_by(
-        User.created_at.desc()
-    ).paginate(page=page, per_page=per_page, error_out=False)
+    inbox = (request.args.get('inbox') or 'unread').strip().lower()
+    if inbox not in ('unread', 'read'):
+        inbox = 'unread'
+
+    q = User.query.filter_by(status=0)
+    if inbox == 'read':
+        q = q.filter(User.registration_read_at.isnot(None))
+    else:
+        q = q.filter(User.registration_read_at.is_(None))
+
+    pagination = q.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
     
     users = [u.to_dict() for u in pagination.items]
     
+    return jsonify({
+        'code': 200,
+        'message': '获取成功',
+        'data': {
+            'list': users,
+            'total': pagination.total,
+            'page': page,
+            'per_page': per_page
+        }
+    })
+
+
+@user_management_bp.route('/approved', methods=['GET'])
+@jwt_required()
+def get_approved_users():
+    """已审核通过的用户列表（用于用户注册审批-已读消息）"""
+    user_id = resolve_user_id()
+
+    user = User.query.get(user_id) if user_id is not None else None
+    if not user or user.role != 'admin':
+        return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    pagination = User.query.filter_by(status=1).filter(
+        User.role != 'admin'
+    ).order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    users = [u.to_dict() for u in pagination.items]
+
     return jsonify({
         'code': 200,
         'message': '获取成功',
@@ -49,10 +92,10 @@ def get_pending_users():
 @jwt_required()
 def get_all_users():
     """获取所有用户列表"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
     # 检查是否为管理员
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id is not None else None
     if not user or user.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -83,14 +126,35 @@ def get_all_users():
     })
 
 
+@user_management_bp.route('/<int:user_id>/mark-read', methods=['POST'])
+@jwt_required()
+def mark_registration_read(user_id):
+    """将待审核记录标为已读（仍保持待审核，仅用于「已读消息」分类）"""
+    admin_id = resolve_user_id()
+    admin = User.query.get(admin_id) if admin_id is not None else None
+    if not admin or admin.role != 'admin':
+        return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
+
+    u = User.query.get(user_id)
+    if not u:
+        return jsonify({'code': 404, 'message': '用户不存在', 'data': None}), 404
+    if u.status != 0:
+        return jsonify({'code': 400, 'message': '仅待审核用户可标记已读', 'data': None}), 400
+
+    u.registration_read_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'code': 200, 'message': '已标记为已读', 'data': u.to_dict()})
+
+
 @user_management_bp.route('/<int:user_id>/approve', methods=['POST'])
 @jwt_required()
 def approve_user(user_id):
     """审核通过用户"""
-    admin_id = get_jwt_identity()
-    
+    admin_id = resolve_user_id()
+
     # 检查是否为管理员
-    admin = User.query.get(admin_id)
+    admin = User.query.get(admin_id) if admin_id is not None else None
     if not admin or admin.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -103,7 +167,12 @@ def approve_user(user_id):
     
     user.status = 1  # 审核通过
     db.session.commit()
-    
+
+    write_biz_log(
+        admin_id, admin.username, request.remote_addr,
+        f'审核通过用户注册：{user.username}', '审核', None
+    )
+
     # 记录日志
     log = SystemLog(
         user_id=admin_id,
@@ -115,7 +184,7 @@ def approve_user(user_id):
     )
     db.session.add(log)
     db.session.commit()
-    
+
     return jsonify({
         'code': 200,
         'message': '审核通过',
@@ -127,10 +196,10 @@ def approve_user(user_id):
 @jwt_required()
 def reject_user(user_id):
     """审核退回用户"""
-    admin_id = get_jwt_identity()
-    
+    admin_id = resolve_user_id()
+
     # 检查是否为管理员
-    admin = User.query.get(admin_id)
+    admin = User.query.get(admin_id) if admin_id is not None else None
     if not admin or admin.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -143,6 +212,11 @@ def reject_user(user_id):
     
     user.status = 0  # 保持待审核状态
     db.session.commit()
+
+    write_biz_log(
+        admin_id, admin.username, request.remote_addr,
+        f'退回用户注册申请：{user.username}', '审核', None
+    )
     
     # 记录日志
     log = SystemLog(
@@ -167,10 +241,10 @@ def reject_user(user_id):
 @jwt_required()
 def delete_user(user_id):
     """删除用户"""
-    admin_id = get_jwt_identity()
-    
+    admin_id = resolve_user_id()
+
     # 检查是否为管理员
-    admin = User.query.get(admin_id)
+    admin = User.query.get(admin_id) if admin_id is not None else None
     if not admin or admin.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     
@@ -218,10 +292,10 @@ def delete_user(user_id):
 })
 def update_user(user_id):
     """更新用户信息"""
-    admin_id = get_jwt_identity()
-    
+    admin_id = resolve_user_id()
+
     # 检查是否为管理员
-    admin = User.query.get(admin_id)
+    admin = User.query.get(admin_id) if admin_id is not None else None
     if not admin or admin.role != 'admin':
         return jsonify({'code': 403, 'message': '无权限访问', 'data': None}), 403
     

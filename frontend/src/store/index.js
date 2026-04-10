@@ -22,6 +22,9 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('profile_synced_token')
+    }
   }
   
   return {

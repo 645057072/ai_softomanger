@@ -66,6 +66,8 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useUserStore } from '../store'
+import { organizationApi } from '../api'
 import biIcon from '../assets/icons/bi.svg'
 import studyIcon from '../assets/icons/study.svg'
 import paperIcon from '../assets/icons/paper.svg'
@@ -76,15 +78,15 @@ export default {
   name: 'Home',
   setup() {
     const organizationInfo = ref(null)
-    
+
     const fetchOrganization = async () => {
+      const store = useUserStore()
+      if (!store.isAdmin) {
+        organizationInfo.value = null
+        return
+      }
       try {
-        const response = await fetch('/api/organization?page=1&per_page=1', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        const result = await response.json()
+        const result = await organizationApi.getList({ page: 1, per_page: 1 })
         if (result.code === 200 && result.data.list && result.data.list.length > 0) {
           organizationInfo.value = result.data.list[0]
         }
@@ -92,9 +94,8 @@ export default {
         console.error('获取组织机构信息失败', error)
       }
     }
-    
+
     onMounted(() => {
-      console.log('Home component mounted')
       fetchOrganization()
     })
     

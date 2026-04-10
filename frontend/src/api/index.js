@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { unref } from 'vue'
 import { useUserStore } from '../store'
 
 // 创建axios实例
@@ -7,10 +8,32 @@ const api = axios.create({
   timeout: 10000
 })
 
+/**
+ * 从 Pinia 与 localStorage 统一取 Token，避免仅读 localStorage 与 store 不同步导致未带鉴权头。
+ * 若曾误存带 Bearer 前缀的字符串，去掉重复前缀。
+ */
+function getAccessTokenForRequest() {
+  let t = ''
+  try {
+    const s = useUserStore()
+    t = unref(s.token) || ''
+  } catch (_) {
+    t = ''
+  }
+  if (!t) {
+    t = localStorage.getItem('token') || ''
+  }
+  t = String(t).trim()
+  if (/^bearer\s+/i.test(t)) {
+    t = t.replace(/^bearer\s+/i, '').trim()
+  }
+  return t
+}
+
 // 请求拦截器
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
+    const token = getAccessTokenForRequest()
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
@@ -21,6 +44,9 @@ api.interceptors.request.use(
   }
 )
 
+// 401 时避免多个并发请求重复清会话、整页跳转导致「闪退」感
+let authRedirectLock = false
+
 // 响应拦截器
 api.interceptors.response.use(
   response => {
@@ -28,9 +54,24 @@ api.interceptors.response.use(
   },
   error => {
     if (error.response && error.response.status === 401) {
-      const userStore = useUserStore()
-      userStore.logout()
-      window.location.href = '/login'
+      const url = error.config?.url || ''
+      if (error.config?.skipAuthRedirect) {
+        return Promise.reject(error)
+      }
+      if (url.includes('/auth/login') || url.includes('/auth/register')) {
+        return Promise.reject(error)
+      }
+      if (!authRedirectLock) {
+        authRedirectLock = true
+        try {
+          const userStore = useUserStore()
+          userStore.logout()
+        } catch (_) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+        }
+        window.location.replace('/login')
+      }
     }
     return Promise.reject(error)
   }
@@ -42,7 +83,7 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
   refresh: () => api.post('/auth/refresh'),
   logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/profile'),
+  getProfile: () => api.get('/auth/profile', { skipAuthRedirect: true }),
   changePassword: (data) => api.post('/auth/change-password', data)
 }
 
@@ -151,6 +192,47 @@ export const organizationApi = {
   create: (data) => api.post('/organization', data),
   update: (id, data) => api.put(`/organization/${id}`, data),
   remove: (id) => api.delete(`/organization/${id}`)
+}
+
+// 用户管理（审批/列表）
+export const userManagementApi = {
+  getPending: (params) => api.get('/user-management/pending', { params }),
+  getApproved: (params) => api.get('/user-management/approved', { params }),
+  getAll: (params) => api.get('/user-management/all', { params }),
+  markRead: (id) => api.post(`/user-management/${id}/mark-read`),
+  approve: (id) => api.post(`/user-management/${id}/approve`),
+  reject: (id) => api.post(`/user-management/${id}/reject`),
+  remove: (id) => api.delete(`/user-management/${id}`),
+  update: (id, data) => api.put(`/user-management/${id}`, data)
+}
+
+// 在线用户
+export const onlineUsersApi = {
+  getList: (params) => api.get('/online-users', { params }),
+  getDetail: (id) => api.get(`/online-users/${id}`),
+  create: (data) => api.post('/online-users', data),
+  remove: (id) => api.delete(`/online-users/${id}`),
+  update: (id, data) => api.put(`/online-users/${id}`, data)
+}
+
+// 业务操作日志
+export const bizOperationLogsApi = {
+  getList: (params) => api.get('/biz-operation-logs', { params }),
+  getDetail: (id) => api.get(`/biz-operation-logs/${id}`),
+  create: (data) => api.post('/biz-operation-logs', data),
+  update: (id, data) => api.put(`/biz-operation-logs/${id}`, data),
+  remove: (id) => api.delete(`/biz-operation-logs/${id}`)
+}
+
+// 数据备份 / 恢复
+export const dataBackupApi = {
+  list: () => api.get('/data-backup'),
+  create: () => api.post('/data-backup'),
+  remove: (filename) => api.delete('/data-backup', { params: { filename } })
+}
+
+export const dataRestoreApi = {
+  restore: (data) => api.post('/data-restore', data)
 }
 
 export default api

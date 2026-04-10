@@ -5,7 +5,7 @@
 - **数据库类型**: SQLite
 - **数据库文件**: `/app/exam_system/exam_system.db`
 - **创建时间**: 2026-04-08
-- **最后更新**: 2026-04-08
+- **最后更新**: 2026-04-10
 
 ## 数据表字典
 
@@ -22,8 +22,9 @@
 | email | VARCHAR | 100 | 是 | NULL | 电子邮箱 |
 | phone | VARCHAR | 20 | 是 | NULL | 手机号码 |
 | id_card | VARCHAR | 18 | 是 | NULL | 身份证号 |
-| role | VARCHAR | 20 | 否 | user | 角色：admin, user |
+| role | VARCHAR | 20 | 否 | student | 角色：admin, teacher, student |
 | status | INTEGER | - | 否 | 1 | 状态：0 待审核，1 正常，2 禁用 |
+| registration_read_at | DATETIME | - | 是 | NULL | 用户注册审批：管理员是否已打开过待审核记录（未读/已读分类） |
 | avatar | VARCHAR | 255 | 是 | NULL | 头像 URL |
 | last_login | DATETIME | - | 是 | NULL | 最后登录时间 |
 | created_at | DATETIME | - | 否 | CURRENT_TIMESTAMP | 创建时间 |
@@ -428,6 +429,38 @@ papers ─┬─< paper_questions
 exams ─┬─< exam_logs
        └─< exam_answers
 ```
+
+---
+
+### online_users - 在线用户表
+
+**说明**：用户登录成功后写入一条记录（同一用户仅保留一条）；调用登出接口或管理员「下线」时删除。
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INTEGER | 主键 |
+| user_id | INTEGER | 用户 ID，唯一，外键 users.id |
+| username | VARCHAR(50) | 用户名 |
+| ip_address | VARCHAR(50) | IP |
+| login_time | DATETIME | 登录时间 |
+| status | VARCHAR(20) | 如：在线 |
+
+---
+
+### biz_operation_logs - 业务操作日志表
+
+**说明**：数据管理「日志」模块展示；注册提交、审核等写入；`op_status` 为「失败」时 `failure_detail` 存详细错误信息。
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | INTEGER | 主键 |
+| user_id | INTEGER | 用户 ID，可空 |
+| username | VARCHAR(50) | 用户名 |
+| ip_address | VARCHAR(50) | IP |
+| description | VARCHAR(100) | 操作说明（≤100 字） |
+| op_status | VARCHAR(20) | 提交、审核、失败 |
+| failure_detail | TEXT | 失败详情（如异常栈） |
+| created_at | DATETIME | 创建时间 |
 
 ---
 

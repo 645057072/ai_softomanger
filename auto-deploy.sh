@@ -91,20 +91,10 @@ echo ""
 echo -e "${YELLOW}[步骤 3/4] 重启 Docker 服务...${NC}"
 
 ssh ${SSH_KEY_ARG} -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
+    set -e
     cd /opt/ai_softomanger
-    
-    echo "停止现有服务..."
-    docker-compose down
-    
-    echo "构建并启动服务..."
-    docker-compose up -d --build
-    
-    if [ $? -eq 0 ]; then
-        echo -e "\033[0;32m✓ 服务启动成功\033[0m"
-    else
-        echo -e "\033[0;31m✗ 服务启动失败\033[0m"
-        exit 1
-    fi
+    chmod +x scripts/docker-compose-redeploy.sh 2>/dev/null || true
+    bash scripts/docker-compose-redeploy.sh
 ENDSSH
 
 echo ""
@@ -120,11 +110,11 @@ ssh ${SSH_KEY_ARG} -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'E
     
     echo ""
     echo "=== 容器状态 ==="
-    docker-compose ps
+    if docker compose version >/dev/null 2>&1; then docker compose ps; elif sudo docker compose version >/dev/null 2>&1; then sudo docker compose ps; else docker-compose ps; fi
     
     echo ""
     echo "=== 服务日志（最近 20 行）==="
-    docker-compose logs --tail=20
+    if docker compose version >/dev/null 2>&1; then docker compose logs --tail=20; elif sudo docker compose version >/dev/null 2>&1; then sudo docker compose logs --tail=20; else docker-compose logs --tail=20; fi
 ENDSSH
 
 echo ""

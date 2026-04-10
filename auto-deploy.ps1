@@ -71,47 +71,30 @@ function Main {
     if ($sshKeyPath) {
         $sshKeyArg = "-i `"$sshKeyPath`""
     }
-    $sshCommand = "ssh $sshKeyArg -o StrictHostKeyChecking=no $($SERVER_USER)@$($SERVER_IP)"
-    
-    # 创建远程命令
-    $remoteCommands = @"
-cd $($REMOTE_PATH)
+    $remoteCommands = @'
+set -e
+cd /opt/ai_softomanger
 echo "正在拉取最新代码..."
 git pull origin master
-if [ `$? -eq 0 ]; then
-    echo -e "\\033[0;32m✓ 代码拉取成功\\033[0m"
-else
-    echo -e "\\033[0;31m✗ 代码拉取失败\\033[0m"
-    exit 1
-fi
-"@
+echo "代码拉取完成"
+'@
 
-    # 执行远程命令
-    $result = echo $remoteCommands | $sshCommand
+    $result = $remoteCommands | & ssh $sshKeyArg -o StrictHostKeyChecking=no "$($SERVER_USER)@$($SERVER_IP)" "bash -s"
     Write-Host $result
     Write-ColorOutput "✓ 代码拉取完成" "Green"
     Write-Host ""
 
-    # 步骤3：重启 Docker 服务
-    Write-ColorOutput "[步骤 3/4] 重启 Docker 服务..." "Yellow"
+    # 步骤3：服务器执行 docker compose up -d --build（与 CI 共用 scripts/docker-compose-redeploy.sh）
+    Write-ColorOutput "[步骤 3/4] 服务器 Docker 全量重建..." "Yellow"
 
-    $deployCommands = @"
-cd $($REMOTE_PATH)
-echo "停止现有服务..."
-docker-compose down
+    $deployCommands = @'
+set -e
+cd /opt/ai_softomanger
+chmod +x scripts/docker-compose-redeploy.sh 2>/dev/null || true
+bash scripts/docker-compose-redeploy.sh
+'@
 
-echo "构建并启动服务..."
-docker-compose up -d --build
-
-if [ `$? -eq 0 ]; then
-    echo -e "\\033[0;32m✓ 服务启动成功\\033[0m"
-else
-    echo -e "\\033[0;31m✗ 服务启动失败\\033[0m"
-    exit 1
-fi
-"@
-
-    $deployResult = echo $deployCommands | $sshCommand
+    $deployResult = $deployCommands | & ssh $sshKeyArg -o StrictHostKeyChecking=no "$($SERVER_USER)@$($SERVER_IP)" "bash -s"
     Write-Host $deployResult
     Write-ColorOutput "✓ 服务重启完成" "Green"
     Write-Host ""
@@ -121,18 +104,17 @@ fi
 
     Start-Sleep -Seconds 5
 
-    $checkCommands = @"
-cd $($REMOTE_PATH)
+    $checkCommands = @'
+cd /opt/ai_softomanger
 echo ""
 echo "=== 容器状态 ==="
-docker-compose ps
-
+if docker compose version >/dev/null 2>&1; then docker compose ps; elif sudo docker compose version >/dev/null 2>&1; then sudo docker compose ps; else docker-compose ps; fi
 echo ""
 echo "=== 服务日志（最近 20 行）==="
-docker-compose logs --tail=20
-"@
+if docker compose version >/dev/null 2>&1; then docker compose logs --tail=20; elif sudo docker compose version >/dev/null 2>&1; then sudo docker compose logs --tail=20; else docker-compose logs --tail=20; fi
+'@
 
-    $checkResult = echo $checkCommands | $sshCommand
+    $checkResult = $checkCommands | & ssh $sshKeyArg -o StrictHostKeyChecking=no "$($SERVER_USER)@$($SERVER_IP)" "bash -s"
     Write-Host $checkResult
 
     Write-Host ""

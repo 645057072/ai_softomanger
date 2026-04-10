@@ -3,14 +3,16 @@
 考试系统 - 认证API
 """
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required
 from datetime import datetime, timedelta
 
 from exam_system.extensions import db
 from exam_system import extensions
-from exam_system.models import User, SystemLog
+from exam_system.models import User, SystemLog, OnlineUser
 from exam_system.utils.decorators import validate_json
 from exam_system.utils.validators import user_login_schema, user_register_schema
+from exam_system.utils.jwt_helper import resolve_user_id
+from exam_system.utils.biz_log import write_biz_log
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -115,7 +117,20 @@ def login():
     )
     db.session.add(log)
     db.session.commit()
-    
+
+    # 在线用户表：同用户仅保留一条记录
+    OnlineUser.query.filter_by(user_id=user.id).delete()
+    db.session.commit()
+    online = OnlineUser(
+        user_id=user.id,
+        username=user.username,
+        ip_address=ip_address,
+        login_time=datetime.utcnow(),
+        status='在线'
+    )
+    db.session.add(online)
+    db.session.commit()
+
     # 生成 Token
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
@@ -181,7 +196,12 @@ def register():
     
     db.session.add(user)
     db.session.commit()
-    
+
+    write_biz_log(
+        user.id, user.username, request.remote_addr,
+        f'用户提交注册申请：{username}', '提交', None
+    )
+
     return jsonify({
         'code': 200,
         'message': '注册成功，请等待管理员审核',
@@ -193,13 +213,13 @@ def register():
 @jwt_required(refresh=True)
 def refresh():
     """刷新Token"""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    
+    user_id = resolve_user_id()
+    user = User.query.get(user_id) if user_id is not None else None
+
     if not user or user.status != 1:
         return jsonify({'code': 401, 'message': '用户不存在或已被禁用', 'data': None}), 401
-    
-    access_token = create_access_token(identity=user_id)
+
+    access_token = create_access_token(identity=user.id)
     
     return jsonify({
         'code': 200,
@@ -212,8 +232,12 @@ def refresh():
 @jwt_required()
 def logout():
     """用户登出"""
-    user_id = get_jwt_identity()
-    
+    user_id = resolve_user_id()
+
+    if user_id is not None:
+        OnlineUser.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+
     # 记录登出日志
     log = SystemLog(
         user_id=user_id,
@@ -232,8 +256,8 @@ def logout():
 @jwt_required()
 def get_profile():
     """获取当前用户信息"""
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user_id = resolve_user_id()
+    user = User.query.get(user_id) if user_id is not None else None
     
     if not user:
         return jsonify({'code': 404, 'message': '用户不存在', 'data': None}), 404
@@ -249,20 +273,23 @@ def get_profile():
 @jwt_required()
 def change_password():
     """修改密码"""
-    user_id = get_jwt_identity()
+    user_id = resolve_user_id()
     data = request.get_json()
-    
+
     old_password = data.get('old_password')
     new_password = data.get('new_password')
-    
+
     if not old_password or not new_password:
         return jsonify({'code': 400, 'message': '参数不完整', 'data': None}), 400
-    
-    user = User.query.get(user_id)
-    
+
+    user = User.query.get(user_id) if user_id is not None else None
+
+    if not user:
+        return jsonify({'code': 404, 'message': '用户不存在', 'data': None}), 404
+
     if not user.check_password(old_password):
         return jsonify({'code': 400, 'message': '原密码错误', 'data': None}), 400
-    
+
     user.set_password(new_password)
     db.session.commit()
     

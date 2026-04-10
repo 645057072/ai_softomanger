@@ -216,6 +216,12 @@ Authorization: Bearer <access_token>
 **请求参数：**
 - `page` (可选): 页码，默认 1
 - `per_page` (可选): 每页数量，默认 10
+- `inbox` (可选): `unread`（默认）仅未读，`read` 已打开但仍待审核；用于「用户注册审批」左侧分类
+
+### 2.1a 待审核记录标为已读
+
+**接口地址：** `POST /user-management/<user_id>/mark-read`  
+**说明**：`status` 仍为 0，仅写入 `registration_read_at`，供「已读消息」列表展示。
 
 **响应示例：**
 
@@ -578,6 +584,52 @@ Authorization: Bearer <access_token>
 
 ---
 
+## 10. 数据管理扩展接口（管理员）
+
+**说明**：均需 `Authorization: Bearer <token>`，且当前用户角色为 `admin`。
+
+### 10.1 用户管理 - 已审核通过列表
+
+**接口地址：** `GET /user-management/approved`  
+**查询参数：** `page`、`per_page`  
+**说明**：列出已审核通过且角色非管理员的用户（常用于统计或扩展）；「用户注册审批」中「已读/未读」待审列表请使用 `GET /user-management/pending` 的 `inbox` 参数。
+
+### 10.2 在线用户
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/online-users` | 分页列表；查询参数 `page`、`per_page`、`username`（可选，模糊） |
+| GET | `/online-users/<id>` | 单条详情 |
+| POST | `/online-users` | 创建在线记录（JSON：`user_id` 必填；`username`、`ip_address`、`status` 可选）；同一 `user_id` 仅保留一条 |
+| DELETE | `/online-users/<id>` | 删除在线记录（强制下线） |
+| PUT | `/online-users/<id>` | 更新状态等（JSON：`status`） |
+
+### 10.3 业务操作日志
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/biz-operation-logs` | 分页；`username`、`op_status` 可选 |
+| GET | `/biz-operation-logs/<id>` | 详情 |
+| POST | `/biz-operation-logs` | 创建（JSON：`description`、`op_status`、`failure_detail` 可选） |
+| PUT | `/biz-operation-logs/<id>` | 更新 |
+| DELETE | `/biz-operation-logs/<id>` | 删除 |
+
+### 10.4 数据备份
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/data-backup` | 备份文件列表（`uploads/backups` 下 `.db`） |
+| POST | `/data-backup` | 执行一次 SQLite 库文件备份 |
+| DELETE | `/data-backup?filename=xxx.db` | 删除指定备份文件 |
+
+### 10.5 数据恢复
+
+**接口地址：** `POST /data-restore`  
+**请求体 JSON：** `{ "filename": "exam_backup_xxx.db" }`  
+**说明**：用指定备份覆盖当前 SQLite 数据库文件；部署环境下需重启后端进程。
+
+---
+
 ## 附录
 
 ### A. 数据字典
@@ -608,7 +660,13 @@ Authorization: Bearer <access_token>
 - `1`: 已提交
 - `2`: 已批改
 
-### B. 错误码说明
+### B. 管理员权限说明
+
+- 用户表字段 `role = admin` 的账号在系统中拥有全部业务管理、系统设置、数据管理等菜单与接口权限。
+- 前端侧栏与路由通过 `requiresAdmin` 与 `userStore.isAdmin` 控制；后端各管理类接口统一校验 `User.role == 'admin'`。
+- 角色表、菜单表、角色菜单关联表可用于非管理员用户的扩展授权；**管理员不依赖上述表即可使用全部功能**。
+
+### C. 错误码说明
 
 | 错误码 | 说明 |
 |--------|------|
@@ -620,7 +678,7 @@ Authorization: Bearer <access_token>
 | 429 | 请求过于频繁 |
 | 500 | 服务器内部错误 |
 
-### C. 联系方式
+### D. 联系方式
 
 **技术支持：** exam-system-support@example.com  
 **文档版本：** v1.0

@@ -13,8 +13,8 @@
       <div class="header-content">
         <div class="logo">考试系统</div>
         <div class="header-info">
-          <!-- 消息预警图标 -->
-          <div class="message-notification" @click="goToMessageCenter">
+          <!-- 消息预警图标（仅管理员：待审核注册数） -->
+          <div v-if="isAdmin" class="message-notification" @click="goToMessageCenter">
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
               <div class="message-icon">
                 <img :src="messageIcon" alt="消息" />
@@ -69,8 +69,8 @@
             <span class="nav-text">考试中心</span>
           </div>
 
-          <!-- 系统设置菜单（带子菜单） -->
-          <div class="nav-item-wrapper">
+          <!-- 系统设置菜单（带子菜单），仅管理员可见 -->
+          <div v-if="isAdmin" class="nav-item-wrapper">
             <div 
               class="nav-item system-menu-title"
               :class="{ active: currentMenu === 'system' }"
@@ -140,13 +140,50 @@
                 <span class="submenu-text">功能授权</span>
               </div>
               
-              <div 
-                class="submenu-item"
-                :class="{ active: currentSubmenu === 'data' }"
-                @click="navigateToSubmenu('data', '/admin/data')"
-              >
-                <span class="submenu-icon"><img :src="dataIcon" alt="数据" /></span>
-                <span class="submenu-text">数据管理</span>
+              <div class="submenu-item-wrapper">
+                <div
+                  class="submenu-item"
+                  :class="{ active: currentSubmenu === 'data' }"
+                  @click="toggleDataSubmenu"
+                >
+                  <span class="submenu-icon"><img :src="dataIcon" alt="数据" /></span>
+                  <span class="submenu-text">数据管理</span>
+                  <span class="submenu-arrow" :class="{ 'arrow-down': dataSubmenuExpanded }">▶</span>
+                </div>
+                <div v-show="dataSubmenuExpanded" class="third-level-menu">
+                  <div
+                    class="third-level-item"
+                    :class="{ active: currentDataSubmenu === 'online' }"
+                    @click="navigateToDataChild('online', '/admin/data/online-users')"
+                  >
+                    <span class="third-icon">•</span>
+                    <span>在线用户</span>
+                  </div>
+                  <div
+                    class="third-level-item"
+                    :class="{ active: currentDataSubmenu === 'logs' }"
+                    @click="navigateToDataChild('logs', '/admin/data/logs')"
+                  >
+                    <span class="third-icon">•</span>
+                    <span>日志</span>
+                  </div>
+                  <div
+                    class="third-level-item"
+                    :class="{ active: currentDataSubmenu === 'backup' }"
+                    @click="navigateToDataChild('backup', '/admin/data/backup')"
+                  >
+                    <span class="third-icon">•</span>
+                    <span>数据备份</span>
+                  </div>
+                  <div
+                    class="third-level-item"
+                    :class="{ active: currentDataSubmenu === 'restore' }"
+                    @click="navigateToDataChild('restore', '/admin/data/restore')"
+                  >
+                    <span class="third-icon">•</span>
+                    <span>数据恢复</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -171,6 +208,7 @@
 
 <script>
 import { useUserStore } from '../store'
+import { userManagementApi, authApi } from '../api'
 import biIcon from '../assets/icons/bi.svg'
 import studyIcon from '../assets/icons/study.svg'
 import paperIcon from '../assets/icons/paper.svg'
@@ -181,7 +219,7 @@ import userIcon from '../assets/icons/user.svg'
 import roleIcon from '../assets/icons/role.svg'
 import authIcon from '../assets/icons/auth.svg'
 import dataIcon from '../assets/icons/data.svg'
-import messageIcon from '../assets/icons/message.svg'
+import messageIcon from '../assets/icons/msg-unread.svg'
 
 export default {
   name: 'Layout',
@@ -192,6 +230,8 @@ export default {
       unreadCount: 0,
       systemMenuExpanded: false,
       userSubmenuExpanded: false,
+      dataSubmenuExpanded: false,
+      currentDataSubmenu: '',
       currentSubmenu: ''
     }
   },
@@ -212,6 +252,9 @@ export default {
     currentUser() {
       const userStore = useUserStore()
       return userStore.userInfo?.username || '用户'
+    },
+    isAdmin() {
+      return useUserStore().isAdmin
     }
   },
   mounted() {
@@ -260,21 +303,32 @@ export default {
       if (path.includes('/organization')) {
         this.currentSubmenu = 'organization'
         this.userSubmenuExpanded = false
+        this.dataSubmenuExpanded = false
       } else if (path.includes('/user-approval')) {
         this.currentSubmenu = 'user-approval'
         this.userSubmenuExpanded = true
+        this.dataSubmenuExpanded = false
       } else if (path.includes('/user-management')) {
         this.currentSubmenu = 'user-management'
         this.userSubmenuExpanded = true
+        this.dataSubmenuExpanded = false
       } else if (path.includes('/role')) {
         this.currentSubmenu = 'role'
         this.userSubmenuExpanded = false
+        this.dataSubmenuExpanded = false
       } else if (path.includes('/authorization')) {
         this.currentSubmenu = 'authorization'
         this.userSubmenuExpanded = false
-      } else if (path.includes('/data')) {
+        this.dataSubmenuExpanded = false
+      } else if (path.includes('/admin/data')) {
         this.currentSubmenu = 'data'
         this.userSubmenuExpanded = false
+        this.dataSubmenuExpanded = true
+        if (path.includes('/admin/data/online-users')) this.currentDataSubmenu = 'online'
+        else if (path.includes('/admin/data/logs')) this.currentDataSubmenu = 'logs'
+        else if (path.includes('/admin/data/backup')) this.currentDataSubmenu = 'backup'
+        else if (path.includes('/admin/data/restore')) this.currentDataSubmenu = 'restore'
+        else this.currentDataSubmenu = 'online'
       }
     },
 
@@ -301,6 +355,20 @@ export default {
       this.userSubmenuExpanded = !this.userSubmenuExpanded
     },
 
+    toggleDataSubmenu() {
+      this.dataSubmenuExpanded = !this.dataSubmenuExpanded
+      if (this.dataSubmenuExpanded) {
+        this.currentSubmenu = 'data'
+        this.$router.push('/admin/data/online-users')
+      }
+    },
+
+    navigateToDataChild(key, path) {
+      this.currentSubmenu = 'data'
+      this.currentDataSubmenu = key
+      this.$router.push(path)
+    },
+
     navigateToSubmenu(submenu, path) {
       this.currentSubmenu = submenu
       this.$router.push(path)
@@ -311,7 +379,12 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
+      }).then(async () => {
+        try {
+          await authApi.logout()
+        } catch (e) {
+          console.error('登出接口调用失败', e)
+        }
         const userStore = useUserStore()
         userStore.logout()
         this.$message.success('已退出系统')
@@ -319,15 +392,15 @@ export default {
       }).catch(() => {})
     },
 
-    // 获取未读消息数量
+    // 获取未读消息数量（仅管理员：待审核注册数）
     async fetchUnreadCount() {
+      const store = useUserStore()
+      if (!store.isAdmin) {
+        this.unreadCount = 0
+        return
+      }
       try {
-        const response = await fetch('/api/user-management/pending?per_page=1', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        const result = await response.json()
+        const result = await userManagementApi.getPending({ page: 1, per_page: 1, inbox: 'unread' })
         if (result.code === 200) {
           this.unreadCount = result.data.total || 0
         }

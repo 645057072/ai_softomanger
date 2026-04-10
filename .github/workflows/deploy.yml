@@ -63,28 +63,11 @@ jobs:
 
           echo "=== Env ==="
           whoami || true
-          pwd || true
           echo "PATH=$PATH"
-
-          echo "=== Docker ==="
-          command -v docker
-          docker --version
-
-          echo "=== Compose detect ==="
-          if docker compose version >/dev/null 2>&1; then
-            COMPOSE="docker compose"
-          elif command -v docker-compose >/dev/null 2>&1; then
-            COMPOSE="docker-compose"
-          else
-            echo "ERROR: docker compose / docker-compose not found in PATH"
-            exit 127
-          fi
-          echo "Using: $COMPOSE"
-          $COMPOSE version || true
 
           git config --global --add safe.directory /opt/ai_softomanger
           cd /opt/ai_softomanger
-          # 服务器目录可能存在手动改动或 CRLF 差异，统一以远端为准，避免 pull 失败导致未更新代码
+
           if command -v git >/dev/null 2>&1; then
             git fetch origin master || true
             git reset --hard origin/master || true
@@ -92,9 +75,14 @@ jobs:
             git pull origin master || true
           fi
 
-          $COMPOSE down
-          $COMPOSE up -d --build
-          $COMPOSE restart nginx
+          # 统一调用仓库内脚本：自动执行 docker compose 或 sudo docker compose up -d --build
+          if [ -f scripts/docker-compose-redeploy.sh ]; then
+            chmod +x scripts/docker-compose-redeploy.sh || true
+            bash scripts/docker-compose-redeploy.sh
+          else
+            echo "ERROR: scripts/docker-compose-redeploy.sh 不存在，请确认 rsync 已同步最新代码"
+            exit 1
+          fi
         ENDSSH
     
     - name: Deployment Complete

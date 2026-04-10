@@ -84,9 +84,9 @@ export default {
 
         if (result.code === 200) {
           const userStore = useUserStore()
-          // 存储后端返回的 access_token
           userStore.login(result.data.access_token, result.data.user)
-          
+          // 不在此写入 profile_synced_token，交由路由守卫在首跳前统一 getProfile，避免子页面请求早于鉴权就绪
+
           this.$message.success('登录成功')
           this.$router.push('/home')
         } else {

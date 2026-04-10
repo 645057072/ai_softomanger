@@ -4,31 +4,35 @@
       <!-- 左侧消息分类菜单 -->
       <el-col :span="4" style="border-right: 1px solid #e4e7ed; padding-right: 0;">
         <div class="message-categories">
-          <div 
-            class="category-item" 
-            :class="{ 'active': currentCategory === 'unread' }"
-            @click="switchCategory('unread')"
-          >
-            <span class="category-icon">未</span>
-            <span class="category-name">未读消息</span>
-            <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left: auto;" />
-          </div>
-          <div 
-            class="category-item" 
-            :class="{ 'active': currentCategory === 'read' }"
-            @click="switchCategory('read')"
-          >
-            <span class="category-icon">已</span>
-            <span class="category-name">已读消息</span>
-          </div>
-          <div 
-            class="category-item" 
-            :class="{ 'active': currentCategory === 'deleted' }"
-            @click="switchCategory('deleted')"
-          >
-            <span class="category-icon">删</span>
-            <span class="category-name">已删除</span>
-          </div>
+          <!-- 使用 SVG 图标 + 悬浮提示，避免左侧大字标签不美观 -->
+          <el-tooltip content="未读：新提交的注册申请（管理员尚未打开）" placement="right">
+            <div
+              class="category-item"
+              :class="{ active: currentCategory === 'unread' }"
+              @click="switchCategory('unread')"
+            >
+              <span class="category-icon-img"><img :src="msgUnreadIcon" alt="未读" /></span>
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="cat-badge" />
+            </div>
+          </el-tooltip>
+          <el-tooltip content="已读：已打开但仍待审核的申请" placement="right">
+            <div
+              class="category-item"
+              :class="{ active: currentCategory === 'read' }"
+              @click="switchCategory('read')"
+            >
+              <span class="category-icon-img"><img :src="msgReadIcon" alt="已读" /></span>
+            </div>
+          </el-tooltip>
+          <el-tooltip content="已删除：已禁用的用户" placement="right">
+            <div
+              class="category-item"
+              :class="{ active: currentCategory === 'deleted' }"
+              @click="switchCategory('deleted')"
+            >
+              <span class="category-icon-img"><img :src="msgDeletedIcon" alt="已删除" /></span>
+            </div>
+          </el-tooltip>
         </div>
       </el-col>
 
@@ -61,13 +65,13 @@
               <template #default="scope">
                 <el-button size="small" @click.stop="viewDetail(scope.row)">查看</el-button>
                 <el-button 
-                  v-if="currentCategory === 'unread'" 
+                  v-if="currentCategory === 'unread' || currentCategory === 'read'" 
                   size="small" 
                   type="success" 
                   @click.stop="handleApprove(scope.row)"
                 >同意</el-button>
                 <el-button 
-                  v-if="currentCategory === 'unread'" 
+                  v-if="currentCategory === 'unread' || currentCategory === 'read'" 
                   size="small" 
                   type="warning" 
                   @click.stop="handleReject(scope.row)"
@@ -97,12 +101,12 @@
             <el-button @click="backToList">← 返回列表</el-button>
             <div class="detail-actions">
               <el-button 
-                v-if="currentCategory === 'unread'" 
+                v-if="currentCategory === 'unread' || currentCategory === 'read'" 
                 type="success" 
                 @click="handleApprove(selectedMessage)"
               >同意</el-button>
               <el-button 
-                v-if="currentCategory === 'unread'" 
+                v-if="currentCategory === 'unread' || currentCategory === 'read'" 
                 type="warning" 
                 @click="handleReject(selectedMessage)"
               >退回</el-button>
@@ -182,8 +186,12 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { userManagementApi } from '../../api'
+import msgUnreadIcon from '../../assets/icons/msg-unread.svg'
+import msgReadIcon from '../../assets/icons/msg-read.svg'
+import msgDeletedIcon from '../../assets/icons/msg-deleted.svg'
 
 export default {
   name: 'UserApproval',
@@ -206,31 +214,27 @@ export default {
 
     const fetchData = async () => {
       try {
-        let url
+        const params = { page: pagination.page, per_page: pagination.per_page }
+        let result
         if (currentCategory.value === 'unread') {
-          url = `/api/user-management/pending?page=${pagination.page}&per_page=${pagination.per_page}`
+          result = await userManagementApi.getPending({ ...params, inbox: 'unread' })
         } else if (currentCategory.value === 'read') {
-          url = `/api/user-management/approved?page=${pagination.page}&per_page=${pagination.per_page}`
+          result = await userManagementApi.getPending({ ...params, inbox: 'read' })
         } else {
-          url = `/api/user-management/all?page=${pagination.page}&per_page=${pagination.per_page}&status=2`
+          result = await userManagementApi.getAll({ ...params, status: 2 })
         }
-        
-        const response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        const result = await response.json()
         if (result.code === 200) {
           tableData.value = result.data.list
           pagination.total = result.data.total
-          
           if (currentCategory.value === 'unread') {
             unreadCount.value = result.data.total
           }
+        } else {
+          ElMessage.error(result.message || '获取数据失败')
         }
       } catch (error) {
-        ElMessage.error('获取数据失败')
+        const m = error?.response?.data?.message
+        ElMessage.error(m || '获取数据失败')
       }
     }
 
@@ -245,8 +249,23 @@ export default {
       viewDetail(row)
     }
 
-    const viewDetail = (row) => {
+    const viewDetail = async (row) => {
       selectedMessage.value = row
+      // 从未读打开详情时标为已读，仍保持待审核状态，列表归入「已读」分类
+      if (currentCategory.value === 'unread') {
+        try {
+          const r = await userManagementApi.markRead(row.id)
+          if (r.code === 200 && r.data) {
+            selectedMessage.value = r.data
+          }
+          await fetchData()
+        } catch (e) {
+          const m = e?.response?.data?.message
+          if (m) {
+            ElMessage.error(m)
+          }
+        }
+      }
     }
 
     const backToList = () => {
@@ -260,21 +279,16 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const response = await fetch(`/api/user-management/${row.id}/approve`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          })
-          const result = await response.json()
+          const result = await userManagementApi.approve(row.id)
           if (result.code === 200) {
-            ElMessage.success('审核通过')
+            ElMessage.success('审核通过，用户已进入用户管理列表')
             fetchData()
           } else {
             ElMessage.error(result.message)
           }
         } catch (error) {
-          ElMessage.error('操作失败')
+          const m = error?.response?.data?.message
+          ElMessage.error(m || '操作失败')
         }
       })
     }
@@ -286,13 +300,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const response = await fetch(`/api/user-management/${row.id}/reject`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          })
-          const result = await response.json()
+          const result = await userManagementApi.reject(row.id)
           if (result.code === 200) {
             ElMessage.success('已退回')
             fetchData()
@@ -300,7 +308,8 @@ export default {
             ElMessage.error(result.message)
           }
         } catch (error) {
-          ElMessage.error('操作失败')
+          const m = error?.response?.data?.message
+          ElMessage.error(m || '操作失败')
         }
       })
     }
@@ -312,13 +321,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const response = await fetch(`/api/user-management/${row.id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          })
-          const result = await response.json()
+          const result = await userManagementApi.remove(row.id)
           if (result.code === 200) {
             ElMessage.success('删除成功')
             fetchData()
@@ -326,7 +329,8 @@ export default {
             ElMessage.error(result.message)
           }
         } catch (error) {
-          ElMessage.error('删除失败')
+          const m = error?.response?.data?.message
+          ElMessage.error(m || '删除失败')
         }
       })
     }
@@ -339,7 +343,7 @@ export default {
       return (pagination.page - 1) * pagination.per_page + index + 1
     }
 
-    const tableRowClassName = ({ row, rowIndex }) => {
+    const tableRowClassName = () => {
       if (currentCategory.value === 'unread') {
         return 'unread-row'
       }
@@ -351,6 +355,9 @@ export default {
     })
 
     return {
+      msgUnreadIcon,
+      msgReadIcon,
+      msgDeletedIcon,
       currentCategory,
       selectedMessage,
       tableData,
@@ -388,11 +395,19 @@ export default {
 .category-item {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
-  margin-bottom: 10px;
+  justify-content: center;
+  padding: 14px 12px;
+  margin-bottom: 12px;
   cursor: pointer;
   transition: all 0.3s;
   border-left: 3px solid transparent;
+  position: relative;
+}
+
+.cat-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
 }
 
 .category-item:hover {
@@ -405,14 +420,20 @@ export default {
   color: #409eff;
 }
 
-.category-icon {
-  font-size: 20px;
-  margin-right: 12px;
+.category-icon-img {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.category-name {
-  font-size: 15px;
-  font-weight: 500;
+.category-icon-img img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
 }
 
 .list-header {

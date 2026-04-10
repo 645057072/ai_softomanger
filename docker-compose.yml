@@ -21,6 +21,7 @@ services:
       - ./exam_system:/app/exam_system
     environment:
       - SECRET_KEY=your-secret-key-here
+      - JWT_SECRET_KEY=ai-softomanger-jwt-secret-2026-fixed
       - SQLALCHEMY_DATABASE_URI=sqlite:////app/exam_system/exam_system.db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -63,6 +64,7 @@ services:
     # 2026-04-08 15:00:00: 只映射 80 端口到宿主机
     ports:
       - "80:80"
+    # 注意：容器内 nginx worker 非 root，宿主 frontend/dist 需可读可进入目录(a+rX)，否则静态资源 403
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./frontend/dist:/usr/share/nginx/html:ro

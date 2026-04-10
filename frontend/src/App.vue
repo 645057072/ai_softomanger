@@ -37,8 +37,7 @@ export default {
       return userStore.isLoggedIn
     },
     isAuthLayout() {
-      const currentRoute = this.$route
-      return currentRoute.meta.layout === 'auth'
+      return this.$route.matched.some((r) => r.meta.layout === 'auth')
     }
   }
 }
