@@ -8,7 +8,8 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,
-    host: '127.0.0.1',
+    // 绑定所有网卡，便于本机以外设备访问开发环境（原仅 127.0.0.1 时局域网无法打开登录页）
+    host: true,
     open: '/login',
     proxy: {
       '/api': {

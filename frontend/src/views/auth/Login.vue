@@ -57,6 +57,7 @@
 </template>
 
 <script>
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '../../store'
 import { authApi } from '../../api'
 import { normalizeAccessToken } from '../../utils/accessToken'
@@ -74,7 +75,7 @@ export default {
   methods: {
     async handleLogin() {
       if (!this.username || !this.password) {
-        this.$message.error('请输入用户名和密码')
+        ElMessage.error('请输入用户名和密码')
         return
       }
       if (this.loginSubmitting) return
@@ -89,7 +90,7 @@ export default {
         if (result.code === 200) {
           const rawToken = result.data?.access_token
           if (!rawToken || typeof rawToken !== 'string') {
-            this.$message.error('登录响应缺少访问令牌，请重试或联系管理员')
+            ElMessage.error('登录响应缺少访问令牌，请重试或联系管理员')
             return
           }
           const userStore = useUserStore()
@@ -102,26 +103,26 @@ export default {
               if (typeof sessionStorage !== 'undefined') {
                 sessionStorage.setItem('profile_synced_token', normalizeAccessToken(rawToken))
               }
-              this.$message.success('登录成功')
+              ElMessage.success('登录成功')
               await this.$router.push('/home')
             } else {
               userStore.logout()
-              this.$message.error(pr.message || '会话校验失败，请重新登录')
+              ElMessage.error(pr.message || '会话校验失败，请重新登录')
             }
           } catch (e) {
             userStore.logout()
             const m = e?.response?.data?.message
-            this.$message.error(m || '会话校验失败，请重新登录')
+            ElMessage.error(m || '会话校验失败，请重新登录')
           }
         } else {
-          this.$message.error(result.message)
+          ElMessage.error(result.message)
           // 用户名保留，清空密码便于重新输入
           this.password = ''
         }
       } catch (error) {
         console.error('登录失败:', error)
         const backendMessage = error?.response?.data?.message
-        this.$message.error(backendMessage || '登录失败，请检查网络连接')
+        ElMessage.error(backendMessage || '登录失败，请检查网络连接')
         // 用户名保留，清空密码便于重新输入
         this.password = ''
       } finally {

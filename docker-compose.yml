@@ -1,10 +1,10 @@
-﻿# 考试系统 Docker Compose（MySQL 8.0 + Redis + 后端 + 前端镜像作唯一80 入口）
+# 考试系统 Docker Compose（MySQL 8.0 + Redis + 后端 + 前端镜像作唯一80 入口）
 #
 # 重要：
 # - backend 的 build.context 必须为项目根目录「.」。若写成 ./exam_system，镜像内缺少依赖与 Dockerfile，会导致后端反复重启。
 # - 生产环境请复制 .env.example 为 .env 并修改默认密码；未提供 .env 时使用下列默认值（仅便于首次拉起）。
 # - 数据库服务名为 db，与 MYSQL_HOST=db 一致。
-# - 公网 80 仅映射到 frontend；其 nginx.conf 内含 /api 反代至 backend。请勿再叠加独立的 exam-system-nginx 使用官方镜像，否则易出现默认欢迎页。
+# - 公网 80 仅映射到 frontend；其 nginx.conf 内含 /api 反代至 backend。请勿再叠加独立的 nginx 使用官方镜像，否则易出现默认欢迎页。
 
 services:
   db:
@@ -75,8 +75,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      volumes:
-      - frontend_dist:/usr/share/nginx/html
       dockerfile: Dockerfile
     container_name: exam-system-frontend
     ports:
@@ -86,16 +84,6 @@ services:
     restart: unless-stopped
     networks:
       - exam-network
-  
-nginx:
-    image: nginx:alpine
-    volumes:
-      - frontend_dist:/usr/share/nginx/html:ro  # 读取同一个卷
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
 
 networks:
   exam-network:
@@ -103,5 +91,3 @@ networks:
 
 volumes:
   mysql_data:
-  frontend_dist:
-

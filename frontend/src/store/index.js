@@ -2,10 +2,22 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { normalizeAccessToken } from '../utils/accessToken'
 
+/** 从 localStorage 安全读取用户信息，非法 JSON 时清理缓存，避免整站无法挂载 */
+function readStoredUserInfo() {
+  const raw = localStorage.getItem('userInfo')
+  if (raw == null || raw === '') return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    localStorage.removeItem('userInfo')
+    return null
+  }
+}
+
 // 用户状态管理
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
+  const userInfo = ref(readStoredUserInfo())
   
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => userInfo.value?.role === 'admin')

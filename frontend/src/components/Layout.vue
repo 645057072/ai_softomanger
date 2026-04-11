@@ -207,6 +207,7 @@
 </template>
 
 <script>
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '../store'
 import { userManagementApi, authApi } from '../api'
 import biIcon from '../assets/icons/bi.svg'
@@ -375,7 +376,7 @@ export default {
     },
 
     handleLogout() {
-      this.$confirm('确定要退出系统吗？', '提示', {
+      ElMessageBox.confirm('确定要退出系统吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -387,7 +388,7 @@ export default {
         }
         const userStore = useUserStore()
         userStore.logout()
-        this.$message.success('已退出系统')
+        ElMessage.success('已退出系统')
         this.$router.push('/login')
       }).catch(() => {})
     },
